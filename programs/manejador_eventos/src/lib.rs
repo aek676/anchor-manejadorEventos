@@ -30,4 +30,8 @@ pub mod manejador_eventos {
     pub fn finalizar_evento(ctx: Context<FinalizarEvento>) -> Result<()> {
         instrucciones::finalizar_evento(ctx)
     }
+
+    pub fn comprar_token_evento(ctx: Context<ComprarTokenEvento>, cantidad: u64) -> Result<()> {
+        instrucciones::comprar_token_evento(ctx, cantidad)
+    }
 }
