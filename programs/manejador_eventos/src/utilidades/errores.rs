@@ -16,4 +16,10 @@ pub enum CodigoError {
 
     #[msg("No puedes eliminar el evento si la boveda de ganacias no esta vacia")]
     BovedaDeGananciasNoVacia,
+
+    #[msg("Los tokens almacenados en la cuenta no corresponden al token esperado")]
+    TokenIncorrecto,
+
+    #[msg("La cuenta no tiene fondos suficientes")]
+    SaldoInsuficiente,
 }
