@@ -3,6 +3,8 @@ import { Program } from "@coral-xyz/anchor";
 import { ManejadorEventos } from "../target/types/manejador_eventos";
 import * as spl from "@solana/spl-token";
 import { assert } from "chai";
+import { BN } from "bn.js";
+import { token } from "@coral-xyz/anchor/dist/cjs/utils";
 
 describe("Test", () => {
   // Configure the client to use the local cluster.
@@ -21,6 +23,19 @@ describe("Test", () => {
 
   // Id del evento
   let id: string = Date.now().toString();
+
+  // CUENTA DE BOB
+  let bob: anchor.web3.Keypair;
+
+  let cuentaTokenAceptadoBob: anchor.web3.PublicKey;
+  let cuentaTokenEventoBob: anchor.web3.PublicKey;
+
+  // CUENTA ALICE
+  let alice: anchor.web3.Keypair;
+
+  let cuentaTokenAceptadoAlice: anchor.web3.PublicKey;
+  let cuentaTokenEventoAlice: anchor.web3.PublicKey;
+
 
   // creamos todo la necesario antes de correr el test
   before(async () => {
@@ -60,6 +75,51 @@ describe("Test", () => {
       autoridad.publicKey,
       2 // Decimales del token
     );
+
+    // Inicializamos la cuenta de token aceptado de Bob
+    bob = anchor.web3.Keypair.generate();
+    await tranferirSOL(bob.publicKey, 1.0);
+
+    cuentaTokenAceptadoBob = await spl.createAssociatedTokenAccount(
+      program.provider.connection,
+      bob,
+      tokenAceptado,
+      bob.publicKey
+    );
+
+    await spl.mintTo(
+      program.provider.connection,
+      bob,
+      tokenAceptado,
+      cuentaTokenAceptadoBob,
+      autoridad,
+      20000
+    );
+
+    cuentaTokenEventoBob = await spl.getAssociatedTokenAddress(
+      tokenEvento,
+      bob.publicKey,
+    );
+
+    /// COMPRA DE ENTRADAS DE ALICE
+    alice = anchor.web3.Keypair.generate();
+    await tranferirSOL(alice.publicKey, 0.01);
+
+    cuentaTokenAceptadoAlice = await spl.createAssociatedTokenAccount(
+      program.provider.connection,
+      alice,
+      tokenAceptado,
+      alice.publicKey
+    );
+
+    await spl.mintTo(
+      program.provider.connection,
+      autoridad,
+      tokenAceptado,
+      cuentaTokenAceptadoAlice,
+      autoridad,
+      20000
+    );
   });
 
 
@@ -95,6 +155,83 @@ describe("Test", () => {
     assert.equal(infoEvento.precioToken.toNumber(), precioToken * 10 ** 2);
   });
 
+  it("Comprar token de evento", async () => {
+    let infoCuentaTokenAceptadoBob = await spl.getAccount(
+      program.provider.connection,
+      cuentaTokenAceptadoBob
+    );
+
+    console.log("Saldo token aceptado de Bob, Antes: ", infoCuentaTokenAceptadoBob.amount);
+
+    const cantidad = new BN(5);
+    const tx = await program.methods.comprarTokenEvento(cantidad)
+      .accounts({
+        evento: evento,
+        cuentaCompradorTokenEvento: cuentaTokenEventoBob,
+        tokenEvento: tokenEvento,
+        cuentaCompradorTokenAceptado: cuentaTokenAceptadoBob,
+        bovedaEvento: bovedaEvento,
+        comprador: bob.publicKey,
+      })
+      .signers([bob])
+      .rpc();
+
+    const latestBlockhash = await program.provider.connection.getLatestBlockhash();
+    await program.provider.connection.confirmTransaction({
+      blockhash: latestBlockhash.blockhash,
+      lastValidBlockHeight: latestBlockhash.lastValidBlockHeight,
+      signature: tx,
+    });
+
+    const infoCuentaTokenEventoBob = await spl.getAccount(
+      program.provider.connection,
+      cuentaTokenEventoBob
+    );
+    console.log("Tokens del evento de Bob: ", infoCuentaTokenEventoBob.amount);
+
+    infoCuentaTokenAceptadoBob = await spl.getAccount(
+      program.provider.connection,
+      cuentaTokenAceptadoBob
+    );
+    console.log("Saldo token aceptado de Bob, Despues: ", infoCuentaTokenAceptadoBob.amount);
+  });
+
+  it("Alice compra 2 entradas del evento", async () => {
+    let infoCuentaTokenAceptadoAlice = await spl.getAccount(
+      program.provider.connection,
+      cuentaTokenAceptadoAlice
+    );
+
+    console.log("Saldo token aceptado de Alice, Antes: ", infoCuentaTokenAceptadoAlice.amount);
+
+    const cantidad = new BN(2);
+    const tx = await program.methods.comprarEntradaEvento(cantidad)
+      .accounts({
+        evento: evento,
+        cuentaCompradorTokenAceptado: cuentaTokenAceptadoAlice,
+        bovedaGanancias: bovedaGanancias,
+        comprador: alice.publicKey,
+      })
+      .signers([alice])
+      .rpc();
+
+    const latestBlockhash = await program.provider.connection.getLatestBlockhash();
+    await program.provider.connection.confirmTransaction({
+      blockhash: latestBlockhash.blockhash,
+      lastValidBlockHeight: latestBlockhash.lastValidBlockHeight,
+      signature: tx,
+    });
+
+    infoCuentaTokenAceptadoAlice = await spl.getAccount(
+      program.provider.connection,
+      cuentaTokenAceptadoAlice
+    );
+    console.log("Salgo token aceptado Alice, Despues: ", infoCuentaTokenAceptadoAlice.amount);
+
+    // Obtener información actualizada del evento para ver entradas vendidas
+    const infoEventoActualizado = await program.account.evento.fetch(evento);
+    assert.equal(infoEventoActualizado.entradasVendidas.toNumber(), cantidad.toNumber());
+  });
   it("Finalizar evento", async () => {
     const tx = await program.methods.finalizarEvento()
       .accounts({
@@ -110,7 +247,8 @@ describe("Test", () => {
     console.log("Informacion del evento despues de finalizar: ", infoEvento.activo);
   });
 
-  it("Eliminar un evento", async () => {
+  it("No se puede eliminar el evento creado anteriormente", async () => {
+    let error: anchor.AnchorError;
     // Llamamos a la instruccion del programa para eliminar el evento
     const tx = await program.methods.eliminarEvento()
       .accounts({
@@ -121,15 +259,32 @@ describe("Test", () => {
         autoridad: autoridad.publicKey,
       })
       .signers([autoridad])
-      .rpc();
+      .rpc()
+      .catch(e => {
+        error = e;
+      });
 
-    // Confirmamos la transaccion
-    await program.provider.connection.confirmTransaction(tx);
+    assert.equal(error.error.errorCode.code, "EventoConSponsors");
 
     const infoEvento = await program.account.evento.fetchNullable(evento);
-    console.log("Informacion del evento despues de eliminar: ", infoEvento);
-    assert.isNull(infoEvento, "El evento no se ha eliminado correctamente");
+
+    console.log("Sponsors del evento: ", infoEvento.totalSponsors.toNumber());
   });
-
-
 });
+
+const tranferirSOL = async (destinatario: anchor.web3.PublicKey, cantidad = 1.0) => {
+  let transaccion = new anchor.web3.Transaction().add(
+    anchor.web3.SystemProgram.transfer({
+      fromPubkey: anchor.getProvider().wallet.publicKey,
+      toPubkey: destinatario,
+      lamports: cantidad * anchor.web3.LAMPORTS_PER_SOL,
+    })
+  );
+  await anchor.web3.sendAndConfirmTransaction(
+    anchor.getProvider().connection,
+    transaccion,
+    [anchor.getProvider().wallet.payer]
+  );
+
+
+};

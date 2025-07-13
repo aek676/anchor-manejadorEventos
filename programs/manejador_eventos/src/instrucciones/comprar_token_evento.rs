@@ -13,7 +13,7 @@ pub struct ComprarTokenEvento<'info> {
             Evento::SEMILLA_EVENTO.as_bytes(),
             evento.autoridad.key().as_ref(),
         ],
-        bump,
+        bump = evento.bump_evento,
     )]
     pub evento: Account<'info, Evento>,
 
@@ -25,6 +25,14 @@ pub struct ComprarTokenEvento<'info> {
     )]
     pub cuenta_comprador_token_evento: Account<'info, TokenAccount>,
 
+    #[account(
+        mut,
+        seeds = [
+            Evento::SEMILLA_TOKEN_EVENTO.as_bytes(),
+            evento.key().as_ref(),
+        ],
+        bump = evento.bump_token_evento,
+    )]
     pub token_evento: Account<'info, Mint>,
 
     #[account(
@@ -40,7 +48,7 @@ pub struct ComprarTokenEvento<'info> {
             Evento::SEMILLA_BOVEDA_EVENTO.as_bytes(),
             evento.key().as_ref(),
         ],
-        bump,
+        bump = evento.bump_boveda_evento,
     )]
     pub boveda_evento: Account<'info, TokenAccount>,
 
