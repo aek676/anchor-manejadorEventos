@@ -1,0 +1,830 @@
+{
+  "address": "GcDERhvoXuoZ4Lw2LWPzrAxhSf1N4VuNFZBRKCXPmfdc",
+  "metadata": {
+    "name": "manejador_eventos",
+    "version": "0.1.0",
+    "spec": "0.1.0",
+    "description": "Created with Anchor"
+  },
+  "instructions": [
+    {
+      "name": "comprar_entrada_evento",
+      "discriminator": [
+        95,
+        118,
+        180,
+        207,
+        81,
+        44,
+        48,
+        75
+      ],
+      "accounts": [
+        {
+          "name": "evento",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "account",
+                "path": "evento.id",
+                "account": "Evento"
+              },
+              {
+                "kind": "const",
+                "value": [
+                  101,
+                  118,
+                  101,
+                  110,
+                  116,
+                  111
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "evento.autoridad",
+                "account": "Evento"
+              }
+            ]
+          }
+        },
+        {
+          "name": "cuenta_comprador_token_aceptado",
+          "writable": true
+        },
+        {
+          "name": "boveda_ganancias",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  98,
+                  111,
+                  118,
+                  101,
+                  100,
+                  97,
+                  95,
+                  103,
+                  97,
+                  110,
+                  97,
+                  110,
+                  99,
+                  105,
+                  97,
+                  115
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "evento"
+              }
+            ]
+          }
+        },
+        {
+          "name": "comprador",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "token_program",
+          "address": "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA"
+        },
+        {
+          "name": "system_program",
+          "address": "11111111111111111111111111111111"
+        }
+      ],
+      "args": [
+        {
+          "name": "cantidad",
+          "type": "u64"
+        }
+      ]
+    },
+    {
+      "name": "comprar_token_evento",
+      "discriminator": [
+        28,
+        248,
+        238,
+        62,
+        221,
+        49,
+        213,
+        234
+      ],
+      "accounts": [
+        {
+          "name": "evento",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "account",
+                "path": "evento.id",
+                "account": "Evento"
+              },
+              {
+                "kind": "const",
+                "value": [
+                  101,
+                  118,
+                  101,
+                  110,
+                  116,
+                  111
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "evento.autoridad",
+                "account": "Evento"
+              }
+            ]
+          }
+        },
+        {
+          "name": "cuenta_comprador_token_evento",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "account",
+                "path": "comprador"
+              },
+              {
+                "kind": "const",
+                "value": [
+                  6,
+                  221,
+                  246,
+                  225,
+                  215,
+                  101,
+                  161,
+                  147,
+                  217,
+                  203,
+                  225,
+                  70,
+                  206,
+                  235,
+                  121,
+                  172,
+                  28,
+                  180,
+                  133,
+                  237,
+                  95,
+                  91,
+                  55,
+                  145,
+                  58,
+                  140,
+                  245,
+                  133,
+                  126,
+                  255,
+                  0,
+                  169
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "token_evento"
+              }
+            ],
+            "program": {
+              "kind": "const",
+              "value": [
+                140,
+                151,
+                37,
+                143,
+                78,
+                36,
+                137,
+                241,
+                187,
+                61,
+                16,
+                41,
+                20,
+                142,
+                13,
+                131,
+                11,
+                90,
+                19,
+                153,
+                218,
+                255,
+                16,
+                132,
+                4,
+                142,
+                123,
+                216,
+                219,
+                233,
+                248,
+                89
+              ]
+            }
+          }
+        },
+        {
+          "name": "token_evento",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  116,
+                  111,
+                  107,
+                  101,
+                  110,
+                  95,
+                  101,
+                  118,
+                  101,
+                  110,
+                  116,
+                  111
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "evento"
+              }
+            ]
+          }
+        },
+        {
+          "name": "cuenta_comprador_token_aceptado",
+          "writable": true
+        },
+        {
+          "name": "boveda_evento",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  98,
+                  111,
+                  118,
+                  101,
+                  100,
+                  97,
+                  95,
+                  101,
+                  118,
+                  101,
+                  110,
+                  116,
+                  111
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "evento"
+              }
+            ]
+          }
+        },
+        {
+          "name": "comprador",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "token_program",
+          "address": "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA"
+        },
+        {
+          "name": "associated_token_program",
+          "address": "ATokenGPvbdGVxr1b2hvZbsiqW5xWH25efTNsLJA8knL"
+        },
+        {
+          "name": "system_program",
+          "address": "11111111111111111111111111111111"
+        }
+      ],
+      "args": [
+        {
+          "name": "cantidad",
+          "type": "u64"
+        }
+      ]
+    },
+    {
+      "name": "crear_evento",
+      "discriminator": [
+        199,
+        96,
+        145,
+        53,
+        132,
+        130,
+        108,
+        32
+      ],
+      "accounts": [
+        {
+          "name": "evento",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "arg",
+                "path": "id"
+              },
+              {
+                "kind": "const",
+                "value": [
+                  101,
+                  118,
+                  101,
+                  110,
+                  116,
+                  111
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "autoridad"
+              }
+            ]
+          }
+        },
+        {
+          "name": "token_aceptado"
+        },
+        {
+          "name": "token_evento",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  116,
+                  111,
+                  107,
+                  101,
+                  110,
+                  95,
+                  101,
+                  118,
+                  101,
+                  110,
+                  116,
+                  111
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "evento"
+              }
+            ]
+          }
+        },
+        {
+          "name": "boveda_evento",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  98,
+                  111,
+                  118,
+                  101,
+                  100,
+                  97,
+                  95,
+                  101,
+                  118,
+                  101,
+                  110,
+                  116,
+                  111
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "evento"
+              }
+            ]
+          }
+        },
+        {
+          "name": "boveda_ganancias",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  98,
+                  111,
+                  118,
+                  101,
+                  100,
+                  97,
+                  95,
+                  103,
+                  97,
+                  110,
+                  97,
+                  110,
+                  99,
+                  105,
+                  97,
+                  115
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "evento"
+              }
+            ]
+          }
+        },
+        {
+          "name": "autoridad",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "token_program",
+          "address": "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA"
+        },
+        {
+          "name": "system_program",
+          "address": "11111111111111111111111111111111"
+        },
+        {
+          "name": "rent",
+          "address": "SysvarRent111111111111111111111111111111111"
+        }
+      ],
+      "args": [
+        {
+          "name": "id",
+          "type": "string"
+        },
+        {
+          "name": "nombre",
+          "type": "string"
+        },
+        {
+          "name": "descripcion",
+          "type": "string"
+        },
+        {
+          "name": "precio_entrada",
+          "type": "f64"
+        },
+        {
+          "name": "precio_token",
+          "type": "f64"
+        }
+      ]
+    },
+    {
+      "name": "eliminar_evento",
+      "discriminator": [
+        158,
+        234,
+        129,
+        79,
+        17,
+        21,
+        21,
+        240
+      ],
+      "accounts": [
+        {
+          "name": "evento",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "account",
+                "path": "evento.id",
+                "account": "Evento"
+              },
+              {
+                "kind": "const",
+                "value": [
+                  101,
+                  118,
+                  101,
+                  110,
+                  116,
+                  111
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "autoridad"
+              }
+            ]
+          }
+        },
+        {
+          "name": "boveda_evento",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  98,
+                  111,
+                  118,
+                  101,
+                  100,
+                  97,
+                  95,
+                  101,
+                  118,
+                  101,
+                  110,
+                  116,
+                  111
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "evento"
+              }
+            ]
+          }
+        },
+        {
+          "name": "boveda_ganancias",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  98,
+                  111,
+                  118,
+                  101,
+                  100,
+                  97,
+                  95,
+                  103,
+                  97,
+                  110,
+                  97,
+                  110,
+                  99,
+                  105,
+                  97,
+                  115
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "evento"
+              }
+            ]
+          }
+        },
+        {
+          "name": "token_evento",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  116,
+                  111,
+                  107,
+                  101,
+                  110,
+                  95,
+                  101,
+                  118,
+                  101,
+                  110,
+                  116,
+                  111
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "evento"
+              }
+            ]
+          }
+        },
+        {
+          "name": "autoridad",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "token_program",
+          "address": "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA"
+        },
+        {
+          "name": "system_program",
+          "address": "11111111111111111111111111111111"
+        }
+      ],
+      "args": []
+    },
+    {
+      "name": "finalizar_evento",
+      "discriminator": [
+        81,
+        168,
+        190,
+        34,
+        62,
+        255,
+        192,
+        61
+      ],
+      "accounts": [
+        {
+          "name": "evento",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "account",
+                "path": "evento.id",
+                "account": "Evento"
+              },
+              {
+                "kind": "const",
+                "value": [
+                  101,
+                  118,
+                  101,
+                  110,
+                  116,
+                  111
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "autoridad"
+              }
+            ]
+          }
+        },
+        {
+          "name": "autoridad",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "system_program",
+          "address": "11111111111111111111111111111111"
+        }
+      ],
+      "args": []
+    }
+  ],
+  "accounts": [
+    {
+      "name": "Evento",
+      "discriminator": [
+        64,
+        31,
+        246,
+        39,
+        23,
+        6,
+        84,
+        116
+      ]
+    }
+  ],
+  "errors": [
+    {
+      "code": 6000,
+      "name": "UsuarioNoAutorizado",
+      "msg": "Solo la autoridad del evento puede eliminarlo"
+    },
+    {
+      "code": 6001,
+      "name": "EventoConSponsors",
+      "msg": "No puedes eliminar un evento con colaboradores"
+    },
+    {
+      "code": 6002,
+      "name": "BovedaDelEventoNoVacia",
+      "msg": "No puedes eliminar el evento si la boveda del evento no esta vacia"
+    },
+    {
+      "code": 6003,
+      "name": "BovedaDeGananciasNoVacia",
+      "msg": "No puedes eliminar el evento si la boveda de ganacias no esta vacia"
+    },
+    {
+      "code": 6004,
+      "name": "TokenIncorrecto",
+      "msg": "Los tokens almacenados en la cuenta no corresponden al token esperado"
+    },
+    {
+      "code": 6005,
+      "name": "SaldoInsuficiente",
+      "msg": "La cuenta no tiene fondos suficientes"
+    }
+  ],
+  "types": [
+    {
+      "name": "Evento",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "id",
+            "type": "string"
+          },
+          {
+            "name": "nombre",
+            "type": "string"
+          },
+          {
+            "name": "descripcion",
+            "type": "string"
+          },
+          {
+            "name": "precio_entrada",
+            "type": "u64"
+          },
+          {
+            "name": "precio_token",
+            "type": "u64"
+          },
+          {
+            "name": "activo",
+            "type": "bool"
+          },
+          {
+            "name": "total_sponsors",
+            "type": "u64"
+          },
+          {
+            "name": "sponsors_actuales",
+            "type": "u64"
+          },
+          {
+            "name": "tokens_vendidos",
+            "type": "u64"
+          },
+          {
+            "name": "entradas_vendidas",
+            "type": "u64"
+          },
+          {
+            "name": "autoridad",
+            "type": "pubkey"
+          },
+          {
+            "name": "token_aceptado",
+            "type": "pubkey"
+          },
+          {
+            "name": "bump_evento",
+            "type": "u8"
+          },
+          {
+            "name": "bump_token_evento",
+            "type": "u8"
+          },
+          {
+            "name": "bump_boveda_evento",
+            "type": "u8"
+          },
+          {
+            "name": "bump_boveda_ganancias",
+            "type": "u8"
+          }
+        ]
+      }
+    }
+  ]
+}
