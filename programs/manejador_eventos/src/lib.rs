@@ -42,4 +42,8 @@ pub mod manejador_eventos {
     pub fn retirar_fondos(ctx: Context<RetirarFondos>, cantidad: u64) -> Result<()> {
         instrucciones::retirar_fondos(ctx, cantidad)
     }
+
+    pub fn retirar_ganancias(ctx: Context<RetirarGanancias>) -> Result<()> {
+        instrucciones::retirar_ganancias(ctx)
+    }
 }

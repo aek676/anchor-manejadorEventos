@@ -34,10 +34,10 @@ describe("Test", () => {
   let alice: anchor.web3.Keypair;
 
   let cuentaTokenAceptadoAlice: anchor.web3.PublicKey;
+  let cuentaTokenEventoAlice: anchor.web3.PublicKey;
 
   // Cuenta de autoridad del token aceptado
   let cuentaAutoridadTokenAceptado: anchor.web3.PublicKey;
-
 
   // creamos todo la necesario antes de correr el test
   before(async () => {
@@ -121,6 +121,11 @@ describe("Test", () => {
       cuentaTokenAceptadoAlice,
       autoridad,
       20000
+    );
+
+    cuentaTokenEventoAlice = await spl.getAssociatedTokenAddress(
+      tokenEvento,
+      alice.publicKey,
     );
 
     cuentaAutoridadTokenAceptado = await spl.getAssociatedTokenAddress(
@@ -233,7 +238,7 @@ describe("Test", () => {
       program.provider.connection,
       cuentaTokenAceptadoAlice
     );
-    console.log("Salgo token aceptado Alice, Despues: ", infoCuentaTokenAceptadoAlice.amount);
+    console.log("Saldo token aceptado Alice, Despues: ", infoCuentaTokenAceptadoAlice.amount);
 
     // Obtener información actualizada del evento para ver entradas vendidas
     const infoEventoActualizado = await program.account.evento.fetch(evento);
@@ -304,6 +309,71 @@ describe("Test", () => {
     infoBovedaEvento = await spl.getAccount(program.provider.connection, bovedaEvento);
     console.log("Saldo de la boveda del evento, Despues: ", infoBovedaEvento.amount);
   });
+
+  it("Alice compra 12 tokens del evento", async () => {
+    let infoCuentaTokenAceptadoAlice = await spl.getAccount(
+      program.provider.connection,
+      cuentaTokenAceptadoAlice
+    );
+    console.log("Saldo token aceptado de Alice, Antes: ", infoCuentaTokenAceptadoAlice.amount);
+
+    const cantidad = new BN(12);
+
+    const tx = await program.methods.comprarTokenEvento(cantidad)
+      .accounts({
+        evento: evento,
+        cuentaCompradorTokenEvento: cuentaTokenEventoAlice,
+        tokenEvento: tokenEvento,
+        cuentaCompradorTokenAceptado: cuentaTokenAceptadoAlice,
+        bovedaEvento: bovedaEvento,
+        comprador: alice.publicKey,
+      })
+      .signers([alice])
+      .rpc();
+
+    const latestBlockhash = await program.provider.connection.getLatestBlockhash();
+    await program.provider.connection.confirmTransaction({
+      blockhash: latestBlockhash.blockhash,
+      lastValidBlockHeight: latestBlockhash.lastValidBlockHeight,
+      signature: tx,
+    });
+
+    const infoCuentaTokenEventoAlice = await spl.getAccount(
+      program.provider.connection,
+      cuentaTokenEventoAlice
+    );
+    console.log("Tokens del evento de Alice: ", infoCuentaTokenEventoAlice.amount);
+  });
+
+  it("El usuario Bob retirar sus ganancias", async () => {
+    let infoBovedaGanancias = await spl.getAccount(program.provider.connection, bovedaGanancias);
+    console.log("Saldo de la boveda de ganancias, Antes: ", infoBovedaGanancias.amount);
+
+    const cantidad = new BN(5);
+
+    const tx = await program.methods.retirarGanancias()
+      .accountsPartial({
+        evento: evento,
+        tokenEvento: tokenEvento,
+        bovedaGanancias: bovedaGanancias,
+        cuentaColaboradorTokenEvento: cuentaTokenEventoBob,
+        cuentaColaboradorTokenAceptado: cuentaTokenAceptadoBob,
+        colaborador: bob.publicKey,
+        autoridad: autoridad.publicKey,
+      })
+      .signers([bob])
+      .rpc();
+
+    const latestBlockhash = await program.provider.connection.getLatestBlockhash();
+    await program.provider.connection.confirmTransaction({
+      blockhash: latestBlockhash.blockhash,
+      lastValidBlockHeight: latestBlockhash.lastValidBlockHeight,
+      signature: tx,
+    });
+
+    infoBovedaGanancias = await spl.getAccount(program.provider.connection, bovedaGanancias);
+    console.log("Saldo de la boveda de ganancias, Despues: ", infoBovedaGanancias.amount);
+  });
 });
 
 const tranferirSOL = async (destinatario: anchor.web3.PublicKey, cantidad = 1.0) => {
@@ -319,6 +389,4 @@ const tranferirSOL = async (destinatario: anchor.web3.PublicKey, cantidad = 1.0)
     transaccion,
     [anchor.getProvider().wallet.payer]
   );
-
-
 };

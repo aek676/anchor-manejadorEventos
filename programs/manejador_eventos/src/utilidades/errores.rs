@@ -1,5 +1,7 @@
 use anchor_lang::prelude::*;
 
+use crate::colecciones::Evento;
+
 // definimos una estructura enum para los errores personalizados
 
 // marcamos con la macro de errores
@@ -22,4 +24,7 @@ pub enum CodigoError {
 
     #[msg("La cuenta no tiene fondos suficientes")]
     SaldoInsuficiente,
+
+    #[msg("El evento sigue activo")]
+    EventoActivo,
 }
