@@ -38,4 +38,8 @@ pub mod manejador_eventos {
     pub fn comprar_entrada_evento(ctx: Context<ComprarEntradaEvento>, cantidad: u64) -> Result<()> {
         instrucciones::comprar_entrada_evento(ctx, cantidad)
     }
+
+    pub fn retirar_fondos(ctx: Context<RetirarFondos>, cantidad: u64) -> Result<()> {
+        instrucciones::retirar_fondos(ctx, cantidad)
+    }
 }

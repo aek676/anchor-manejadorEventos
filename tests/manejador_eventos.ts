@@ -34,7 +34,9 @@ describe("Test", () => {
   let alice: anchor.web3.Keypair;
 
   let cuentaTokenAceptadoAlice: anchor.web3.PublicKey;
-  let cuentaTokenEventoAlice: anchor.web3.PublicKey;
+
+  // Cuenta de autoridad del token aceptado
+  let cuentaAutoridadTokenAceptado: anchor.web3.PublicKey;
 
 
   // creamos todo la necesario antes de correr el test
@@ -119,6 +121,11 @@ describe("Test", () => {
       cuentaTokenAceptadoAlice,
       autoridad,
       20000
+    );
+
+    cuentaAutoridadTokenAceptado = await spl.getAssociatedTokenAddress(
+      tokenAceptado,
+      autoridad.publicKey,
     );
   });
 
@@ -269,6 +276,33 @@ describe("Test", () => {
     const infoEvento = await program.account.evento.fetchNullable(evento);
 
     console.log("Sponsors del evento: ", infoEvento.totalSponsors.toNumber());
+  });
+
+  it("El usuario creador del evento retirar 2 tokens", async () => {
+    let infoBovedaEvento = await spl.getAccount(program.provider.connection, bovedaEvento);
+    console.log("Saldo de la boveda del evento, Antes: ", infoBovedaEvento.amount);
+
+    const cantidad = new BN(2);
+
+    const tx = await program.methods.retirarFondos(cantidad)
+      .accounts({
+        evento: evento,
+        cuentaAutoridadTokenAceptado: cuentaAutoridadTokenAceptado,
+        bovedaEvento: bovedaEvento,
+        tokenAceptado: tokenAceptado,
+        autoridad: autoridad.publicKey,
+      })
+      .rpc();
+
+    const latestBlockhash = await program.provider.connection.getLatestBlockhash();
+    await program.provider.connection.confirmTransaction({
+      blockhash: latestBlockhash.blockhash,
+      lastValidBlockHeight: latestBlockhash.lastValidBlockHeight,
+      signature: tx,
+    });
+
+    infoBovedaEvento = await spl.getAccount(program.provider.connection, bovedaEvento);
+    console.log("Saldo de la boveda del evento, Despues: ", infoBovedaEvento.amount);
   });
 });
 
