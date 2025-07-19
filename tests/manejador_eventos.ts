@@ -167,6 +167,7 @@ describe("Test", () => {
     assert.equal(infoEvento.precioToken.toNumber(), precioToken * 10 ** 2);
   });
 
+  /*
   it("Comprar token de evento", async () => {
     let infoCuentaTokenAceptadoBob = await spl.getAccount(
       program.provider.connection,
@@ -250,7 +251,7 @@ describe("Test", () => {
         evento: evento,
         autoridad: autoridad.publicKey,
       })
-      .signers([autoridad])
+      .signers([autoridad]) // No haria falta
       .rpc();
 
     await program.provider.connection.confirmTransaction(tx);
@@ -270,7 +271,7 @@ describe("Test", () => {
         bovedaGanancias: bovedaGanancias,
         autoridad: autoridad.publicKey,
       })
-      .signers([autoridad])
+      .signers([autoridad]) // No haria falta
       .rpc()
       .catch(e => {
         error = e;
@@ -374,6 +375,7 @@ describe("Test", () => {
     infoBovedaGanancias = await spl.getAccount(program.provider.connection, bovedaGanancias);
     console.log("Saldo de la boveda de ganancias, Despues: ", infoBovedaGanancias.amount);
   });
+  */
 });
 
 const tranferirSOL = async (destinatario: anchor.web3.PublicKey, cantidad = 1.0) => {

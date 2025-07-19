@@ -7,13 +7,11 @@ import { ManejadorEventosClient } from '@/utils/eventosClient';
 import { PublicKey } from '@solana/web3.js';
 import * as spl from '@solana/spl-token';
 
-export function ComprarEntradas() {
+export function ComprarEntradas({ eventoId, autoridadEvento }: { eventoId: string; autoridadEvento: PublicKey }) {
     const { publicKey } = useWallet();
     const { program, provider } = useProgram();
 
     const [formData, setFormData] = useState({
-        eventoId: '',
-        autoridadEvento: '',
         cantidad: '',
     });
 
@@ -29,7 +27,7 @@ export function ComprarEntradas() {
             return;
         }
 
-        if (!formData.eventoId || !formData.autoridadEvento || !formData.cantidad) {
+        if (!eventoId || !autoridadEvento || !formData.cantidad) {
             setError('Todos los campos son requeridos');
             return;
         }
@@ -40,10 +38,9 @@ export function ComprarEntradas() {
 
         try {
             const client = new ManejadorEventosClient(program, provider.connection);
-            const autoridadEvento = new PublicKey(formData.autoridadEvento);
 
             // Obtener información del evento para el token aceptado
-            const eventoInfo = await client.getEventoInfo(formData.eventoId, autoridadEvento);
+            const eventoInfo = await client.getEventoInfo(eventoId, autoridadEvento);
             if (!eventoInfo) {
                 throw new Error('Evento no encontrado');
             }
@@ -66,7 +63,7 @@ export function ComprarEntradas() {
             }
 
             await client.comprarEntradaEvento(
-                formData.eventoId,
+                eventoId,
                 autoridadEvento,
                 publicKey,
                 parseInt(formData.cantidad),
@@ -75,8 +72,6 @@ export function ComprarEntradas() {
 
             setSuccess(true);
             setFormData({
-                eventoId: '',
-                autoridadEvento: '',
                 cantidad: '',
             });
 
@@ -107,38 +102,6 @@ export function ComprarEntradas() {
             </div>
 
             <form onSubmit={handleSubmit} className="space-y-6">
-                <div>
-                    <label htmlFor="eventoId" className="block text-sm font-medium text-blue-200 mb-2">
-                        ID del Evento
-                    </label>
-                    <input
-                        type="text"
-                        id="eventoId"
-                        name="eventoId"
-                        value={formData.eventoId}
-                        onChange={handleChange}
-                        className="w-full px-3 py-2 bg-white/10 border border-white/20 rounded-md text-white placeholder-blue-300 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                        placeholder="Ej: 1703123456789"
-                        required
-                    />
-                </div>
-
-                <div>
-                    <label htmlFor="autoridadEvento" className="block text-sm font-medium text-blue-200 mb-2">
-                        Dirección del Creador del Evento
-                    </label>
-                    <input
-                        type="text"
-                        id="autoridadEvento"
-                        name="autoridadEvento"
-                        value={formData.autoridadEvento}
-                        onChange={handleChange}
-                        className="w-full px-3 py-2 bg-white/10 border border-white/20 rounded-md text-white placeholder-blue-300 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                        placeholder="Dirección pública del creador"
-                        required
-                    />
-                </div>
-
                 <div>
                     <label htmlFor="cantidad" className="block text-sm font-medium text-blue-200 mb-2">
                         Cantidad de Entradas

@@ -41,18 +41,24 @@ export function CrearEvento() {
         try {
             const client = new ManejadorEventosClient(program, provider.connection);
 
-            // Usar el token mint de USDC en devnet como token aceptado
-            // USDC devnet mint: 4zMMC9srt5Ri5X14GAgXhaHii3GnPAEERYPJgZJDncDU
-            const tokenAceptado = new PublicKey('4zMMC9srt5Ri5X14GAgXhaHii3GnPAEERYPJgZJDncDU');
+            // USDC en devnet tiene 6 decimales
+            const tokenAceptado = new PublicKey('Gh9ZwEmdLJ8DscKNTkTqPbNwLNNBjuSzaG9Vp2KGtKJr');
 
             const eventoId = Date.now().toString();
+
+            // NO multiplicar por decimales aquí - el programa Rust ya lo hace
+            const precioEntrada = 1.2;
+            const precioToken = 2.4;
+
+            console.log('Precio entrada a enviar:', precioEntrada);
+            console.log('Precio token a enviar:', precioToken);
 
             const result = await client.crearEvento(
                 eventoId,
                 formData.nombre,
                 formData.descripcion,
-                parseFloat(formData.precioEntrada),
-                parseFloat(formData.precioToken),
+                precioEntrada, // Enviar como número decimal directo
+                precioToken,   // Enviar como número decimal directo
                 tokenAceptado,
                 publicKey
             );
@@ -122,7 +128,7 @@ export function CrearEvento() {
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
                         <label htmlFor="precioEntrada" className="block text-sm font-medium text-blue-200 mb-2">
-                            Precio por Entrada (tokens)
+                            Precio por Entrada (USDC)
                         </label>
                         <input
                             type="number"
@@ -136,11 +142,14 @@ export function CrearEvento() {
                             placeholder="2.50"
                             required
                         />
+                        <p className="text-xs text-blue-300 mt-1">
+                            Precio en USDC (ej: 1.50 = 1.50 USDC)
+                        </p>
                     </div>
 
                     <div>
                         <label htmlFor="precioToken" className="block text-sm font-medium text-blue-200 mb-2">
-                            Precio por Token del Evento
+                            Precio por Token del Evento (USDC)
                         </label>
                         <input
                             type="number"
@@ -154,8 +163,28 @@ export function CrearEvento() {
                             placeholder="5.00"
                             required
                         />
+                        <p className="text-xs text-blue-300 mt-1">
+                            Precio en USDC (ej: 5.00 = 5.00 USDC)
+                        </p>
                     </div>
                 </div>
+
+                {/* Vista previa de los precios */}
+                {(formData.precioEntrada || formData.precioToken) && (
+                    <div className="bg-blue-500/20 border border-blue-500/50 rounded-md p-4">
+                        <h3 className="text-sm font-medium text-blue-200 mb-2">Vista Previa:</h3>
+                        {formData.precioEntrada && (
+                            <p className="text-xs text-blue-300">
+                                • Entrada: {formData.precioEntrada} USDC
+                            </p>
+                        )}
+                        {formData.precioToken && (
+                            <p className="text-xs text-blue-300">
+                                • Token del evento: {formData.precioToken} USDC
+                            </p>
+                        )}
+                    </div>
+                )}
 
                 {error && (
                     <div className="bg-red-500/20 border border-red-500/50 rounded-md p-4">

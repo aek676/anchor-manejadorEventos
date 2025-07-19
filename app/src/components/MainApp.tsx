@@ -36,8 +36,8 @@ export function MainApp() {
                         <button
                             onClick={() => setActiveTab('eventos')}
                             className={`flex-1 py-2 px-4 rounded-md text-sm font-medium transition-colors ${activeTab === 'eventos'
-                                    ? 'bg-blue-600 text-white'
-                                    : 'text-blue-200 hover:text-white hover:bg-white/10'
+                                ? 'bg-blue-600 text-white'
+                                : 'text-blue-200 hover:text-white hover:bg-white/10'
                                 }`}
                         >
                             📋 Ver Eventos
@@ -45,29 +45,11 @@ export function MainApp() {
                         <button
                             onClick={() => setActiveTab('crear')}
                             className={`flex-1 py-2 px-4 rounded-md text-sm font-medium transition-colors ${activeTab === 'crear'
-                                    ? 'bg-blue-600 text-white'
-                                    : 'text-blue-200 hover:text-white hover:bg-white/10'
+                                ? 'bg-blue-600 text-white'
+                                : 'text-blue-200 hover:text-white hover:bg-white/10'
                                 }`}
                         >
                             ➕ Crear Evento
-                        </button>
-                        <button
-                            onClick={() => setActiveTab('tokens')}
-                            className={`flex-1 py-2 px-4 rounded-md text-sm font-medium transition-colors ${activeTab === 'tokens'
-                                    ? 'bg-blue-600 text-white'
-                                    : 'text-blue-200 hover:text-white hover:bg-white/10'
-                                }`}
-                        >
-                            🪙 Comprar Tokens
-                        </button>
-                        <button
-                            onClick={() => setActiveTab('entradas')}
-                            className={`flex-1 py-2 px-4 rounded-md text-sm font-medium transition-colors ${activeTab === 'entradas'
-                                    ? 'bg-blue-600 text-white'
-                                    : 'text-blue-200 hover:text-white hover:bg-white/10'
-                                }`}
-                        >
-                            🎟️ Comprar Entradas
                         </button>
                     </div>
 
@@ -75,8 +57,6 @@ export function MainApp() {
                     <div className="min-h-[400px]">
                         {activeTab === 'eventos' && <ListaEventos />}
                         {activeTab === 'crear' && <CrearEvento />}
-                        {activeTab === 'tokens' && <ComprarTokens />}
-                        {activeTab === 'entradas' && <ComprarEntradas />}
                     </div>
                 </div>
             ) : (

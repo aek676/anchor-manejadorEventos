@@ -5,7 +5,7 @@
  * IDL can be found at `target/idl/manejador_eventos.json`.
  */
 export type ManejadorEventos = {
-  "address": "GcDERhvoXuoZ4Lw2LWPzrAxhSf1N4VuNFZBRKCXPmfdc",
+  "address": "WAEdkGnMEj3nvktbFLR2eb6uHDEFo5EEbRrfvydPzi8",
   "metadata": {
     "name": "manejadorEventos",
     "version": "0.1.0",
@@ -710,6 +710,331 @@ export type ManejadorEventos = {
         }
       ],
       "args": []
+    },
+    {
+      "name": "retirarFondos",
+      "discriminator": [
+        198,
+        220,
+        159,
+        15,
+        90,
+        39,
+        4,
+        252
+      ],
+      "accounts": [
+        {
+          "name": "evento",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "account",
+                "path": "evento.id",
+                "account": "evento"
+              },
+              {
+                "kind": "const",
+                "value": [
+                  101,
+                  118,
+                  101,
+                  110,
+                  116,
+                  111
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "autoridad"
+              }
+            ]
+          }
+        },
+        {
+          "name": "cuentaTokenAceptadoAutoridad",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "account",
+                "path": "autoridad"
+              },
+              {
+                "kind": "const",
+                "value": [
+                  6,
+                  221,
+                  246,
+                  225,
+                  215,
+                  101,
+                  161,
+                  147,
+                  217,
+                  203,
+                  225,
+                  70,
+                  206,
+                  235,
+                  121,
+                  172,
+                  28,
+                  180,
+                  133,
+                  237,
+                  95,
+                  91,
+                  55,
+                  145,
+                  58,
+                  140,
+                  245,
+                  133,
+                  126,
+                  255,
+                  0,
+                  169
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "tokenAceptado"
+              }
+            ],
+            "program": {
+              "kind": "const",
+              "value": [
+                140,
+                151,
+                37,
+                143,
+                78,
+                36,
+                137,
+                241,
+                187,
+                61,
+                16,
+                41,
+                20,
+                142,
+                13,
+                131,
+                11,
+                90,
+                19,
+                153,
+                218,
+                255,
+                16,
+                132,
+                4,
+                142,
+                123,
+                216,
+                219,
+                233,
+                248,
+                89
+              ]
+            }
+          }
+        },
+        {
+          "name": "bovedaEvento",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  98,
+                  111,
+                  118,
+                  101,
+                  100,
+                  97,
+                  95,
+                  101,
+                  118,
+                  101,
+                  110,
+                  116,
+                  111
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "evento"
+              }
+            ]
+          }
+        },
+        {
+          "name": "tokenAceptado"
+        },
+        {
+          "name": "autoridad",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "tokenProgram",
+          "address": "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA"
+        },
+        {
+          "name": "associatedTokenProgram",
+          "address": "ATokenGPvbdGVxr1b2hvZbsiqW5xWH25efTNsLJA8knL"
+        },
+        {
+          "name": "systemProgram",
+          "address": "11111111111111111111111111111111"
+        }
+      ],
+      "args": [
+        {
+          "name": "cantidad",
+          "type": "u64"
+        }
+      ]
+    },
+    {
+      "name": "retirarGanancias",
+      "discriminator": [
+        182,
+        137,
+        175,
+        180,
+        191,
+        81,
+        244,
+        248
+      ],
+      "accounts": [
+        {
+          "name": "evento",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "account",
+                "path": "evento.id",
+                "account": "evento"
+              },
+              {
+                "kind": "const",
+                "value": [
+                  101,
+                  118,
+                  101,
+                  110,
+                  116,
+                  111
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "autoridad"
+              }
+            ]
+          }
+        },
+        {
+          "name": "tokenEvento",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  116,
+                  111,
+                  107,
+                  101,
+                  110,
+                  95,
+                  101,
+                  118,
+                  101,
+                  110,
+                  116,
+                  111
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "evento"
+              }
+            ]
+          }
+        },
+        {
+          "name": "cuentaColaboradorTokenAceptado",
+          "writable": true
+        },
+        {
+          "name": "cuentaColaboradorTokenEvento",
+          "writable": true
+        },
+        {
+          "name": "bovedaGanancias",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  98,
+                  111,
+                  118,
+                  101,
+                  100,
+                  97,
+                  95,
+                  103,
+                  97,
+                  110,
+                  97,
+                  110,
+                  99,
+                  105,
+                  97,
+                  115
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "evento"
+              }
+            ]
+          }
+        },
+        {
+          "name": "colaborador",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "autoridad",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "tokenProgram",
+          "address": "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA"
+        },
+        {
+          "name": "associatedTokenProgram",
+          "address": "ATokenGPvbdGVxr1b2hvZbsiqW5xWH25efTNsLJA8knL"
+        },
+        {
+          "name": "systemProgram",
+          "address": "11111111111111111111111111111111"
+        }
+      ],
+      "args": []
     }
   ],
   "accounts": [
@@ -757,6 +1082,11 @@ export type ManejadorEventos = {
       "code": 6005,
       "name": "saldoInsuficiente",
       "msg": "La cuenta no tiene fondos suficientes"
+    },
+    {
+      "code": 6006,
+      "name": "eventoActivo",
+      "msg": "El evento sigue activo"
     }
   ],
   "types": [

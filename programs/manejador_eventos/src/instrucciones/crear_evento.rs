@@ -84,10 +84,9 @@ pub fn crear_evento(
     ctx.accounts.evento.descripcion = descripcion;
 
     // precios
-    ctx.accounts.evento.precio_entrada =
-        (precio_entrada as u64) * 10_u64.pow(ctx.accounts.token_aceptado.decimals.into()); // Convertimos a lamports
-    ctx.accounts.evento.precio_token =
-        (precio_token as u64) * 10_u64.pow(ctx.accounts.token_aceptado.decimals.into()); // Convertimos a lamports
+    let factor_decimales = 10_f64.powf(ctx.accounts.token_aceptado.decimals as f64);
+    ctx.accounts.evento.precio_entrada = (precio_entrada * factor_decimales) as u64; // Convertimos a lamports
+    ctx.accounts.evento.precio_token = (precio_token * factor_decimales) as u64; // Convertimos a lamports
 
     ctx.accounts.evento.activo = true;
     ctx.accounts.evento.total_sponsors = 0;

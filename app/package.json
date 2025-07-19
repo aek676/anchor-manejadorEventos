@@ -6,7 +6,8 @@
     "dev": "next dev --turbopack",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "next lint",
+    "anchor:build": "anchor build && cp ../target/idl/manejador_eventos.json ./src/anchor/manejador_eventos.json && cp ../target/types/manejador_eventos.ts ./src/anchor/manejador_eventos.ts"
   },
   "dependencies": {
     "@coral-xyz/anchor": "^0.31.1",

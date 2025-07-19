@@ -6,7 +6,7 @@ mod colecciones;
 mod instrucciones;
 mod utilidades;
 
-declare_id!("GcDERhvoXuoZ4Lw2LWPzrAxhSf1N4VuNFZBRKCXPmfdc");
+declare_id!("WAEdkGnMEj3nvktbFLR2eb6uHDEFo5EEbRrfvydPzi8");
 
 #[program]
 pub mod manejador_eventos {

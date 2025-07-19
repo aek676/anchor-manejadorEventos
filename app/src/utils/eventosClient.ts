@@ -1,4 +1,4 @@
-import { PublicKey, Connection } from '@solana/web3.js';
+import { PublicKey, Connection, Signer } from '@solana/web3.js';
 import { Program } from '@coral-xyz/anchor';
 import { ManejadorEventos } from '../anchor/manejador_eventos';
 import * as spl from '@solana/spl-token';
@@ -152,15 +152,6 @@ export class ManejadorEventosClient {
     async eliminarEvento(eventoId: string, autoridad: PublicKey) {
         const pdas = this.findEventoPDAs(eventoId, autoridad);
 
-        console.log('PDAs para eliminar evento:', {
-            evento: pdas.evento.toBase58(),
-            tokenEvento: pdas.tokenEvento.toBase58(),
-            bovedaEvento: pdas.bovedaEvento.toBase58(),
-            bovedaGanancias: pdas.bovedaGanancias.toBase58(),
-            eventoId,
-            autoridad: autoridad.toBase58()
-        });
-
         const tx = await this.program.methods
             .eliminarEvento()
             .accountsPartial({
@@ -170,6 +161,43 @@ export class ManejadorEventosClient {
                 tokenEvento: pdas.tokenEvento,
                 autoridad,
             })
+            .rpc();
+
+        return tx;
+    }
+
+    async retirarFondos(eventoId: string, autoridad: PublicKey, cantidad: number, tokenAceptado: PublicKey, cuentaTokenAceptadoAutoridad: PublicKey) {
+        const pdas = this.findEventoPDAs(eventoId, autoridad);
+
+        const tx = await this.program.methods
+            .retirarFondos(new BN(cantidad))
+            .accountsPartial({
+                evento: pdas.evento,
+                bovedaEvento: pdas.bovedaEvento,
+                tokenAceptado,
+                cuentaTokenAceptadoAutoridad,
+                autoridad,
+            })
+            .rpc();
+
+        return tx;
+    }
+
+    async retirarGanancias(eventoId: string, autoridad: PublicKey, cuentaColaboradorTokenAceptado: PublicKey, cuentaColaboradorTokenEvento: PublicKey, colaborador: Signer) {
+        const pdas = this.findEventoPDAs(eventoId, autoridad);
+
+        const tx = await this.program.methods
+            .retirarGanancias()
+            .accountsPartial({
+                evento: pdas.evento,
+                tokenEvento: pdas.tokenEvento,
+                bovedaGanancias: pdas.bovedaGanancias,
+                cuentaColaboradorTokenAceptado,
+                cuentaColaboradorTokenEvento,
+                colaborador: colaborador.publicKey,
+                autoridad: autoridad,
+            })
+            .signers([colaborador])
             .rpc();
 
         return tx;
@@ -257,21 +285,72 @@ export class ManejadorEventosClient {
         try {
             const eventosAccounts = await this.program.account.evento.all();
 
-            return eventosAccounts.map(eventoAccount => ({
-                id: eventoAccount.account.id,
-                nombre: eventoAccount.account.nombre,
-                descripcion: eventoAccount.account.descripcion,
-                precioEntrada: eventoAccount.account.precioEntrada.toNumber() / 100,
-                precioToken: eventoAccount.account.precioToken.toNumber() / 100,
-                entradasVendidas: eventoAccount.account.entradasVendidas.toNumber(),
-                totalSponsors: eventoAccount.account.totalSponsors.toNumber(),
-                activo: eventoAccount.account.activo,
-                autoridad: eventoAccount.account.autoridad,
-                tokenAceptado: eventoAccount.account.tokenAceptado,
+            const eventosInfo = await Promise.all(eventosAccounts.map(async eventoAccount => {
+                const mintInfo = await spl.getMint(this.connection, eventoAccount.account.tokenAceptado);
+                return {
+                    id: eventoAccount.account.id,
+                    nombre: eventoAccount.account.nombre,
+                    descripcion: eventoAccount.account.descripcion,
+                    precioEntrada: eventoAccount.account.precioEntrada.toNumber() / Math.pow(10, mintInfo.decimals),
+                    precioToken: eventoAccount.account.precioToken.toNumber() / Math.pow(10, mintInfo.decimals),
+                    entradasVendidas: eventoAccount.account.entradasVendidas.toNumber(),
+                    totalSponsors: eventoAccount.account.totalSponsors.toNumber(),
+                    activo: eventoAccount.account.activo,
+                    autoridad: eventoAccount.account.autoridad,
+                    tokenAceptado: eventoAccount.account.tokenAceptado,
+                };
             }));
+            return eventosInfo;
         } catch (error) {
             console.error('Error al obtener todos los eventos:', error);
             return [];
+        }
+    }
+
+    // Elimina todos los eventos del programa
+    async eliminarTodosLosEventos(colaborador?: Signer) {
+        const eventos = await this.getAllEventos();
+        for (const evento of eventos) {
+            // Finalizar si está activo
+            if (evento.activo) {
+                await this.finalizarEvento(evento.id, evento.autoridad);
+            }
+
+            // Obtener PDAs
+            const pdas = this.findEventoPDAs(evento.id, evento.autoridad);
+
+            // Retirar fondos de bóveda del evento
+            const bovedaEventoBalance = await this.connection.getTokenAccountBalance(pdas.bovedaEvento);
+            if (bovedaEventoBalance.value.uiAmount && bovedaEventoBalance.value.uiAmount > 0) {
+                const cuentaTokenAceptadoAutoridad = await this.getAssociatedTokenAddress(evento.tokenAceptado, evento.autoridad);
+                await this.retirarFondos(
+                    evento.id,
+                    evento.autoridad,
+                    Math.floor(bovedaEventoBalance.value.uiAmount * 100),
+                    evento.tokenAceptado,
+                    cuentaTokenAceptadoAutoridad
+                );
+            }
+
+            // Retirar ganancias de bóveda de ganancias (si aplica y tienes colaborador)
+            const bovedaGananciasBalance = await this.connection.getTokenAccountBalance(pdas.bovedaGanancias);
+            if (bovedaGananciasBalance.value.uiAmount && bovedaGananciasBalance.value.uiAmount > 0 && colaborador) {
+                const cuentaColaboradorTokenAceptado = await this.getAssociatedTokenAddress(evento.tokenAceptado, colaborador.publicKey);
+                const cuentaColaboradorTokenEvento = await this.getAssociatedTokenAddress(pdas.tokenEvento, colaborador.publicKey);
+                await this.retirarGanancias(
+                    evento.id,
+                    evento.autoridad,
+                    cuentaColaboradorTokenAceptado,
+                    cuentaColaboradorTokenEvento,
+                    colaborador
+                );
+            }
+
+            // Verificar condiciones y eliminar
+            const condiciones = await this.verificarCondicionesEliminacion(evento.id, evento.autoridad);
+            if (condiciones.puedeEliminar) {
+                await this.eliminarEvento(evento.id, evento.autoridad);
+            }
         }
     }
 
@@ -282,4 +361,5 @@ export class ManejadorEventosClient {
     ) {
         return await spl.getAssociatedTokenAddress(tokenMint, owner);
     }
+
 }

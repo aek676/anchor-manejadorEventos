@@ -4,6 +4,10 @@ import { useState, useEffect, useCallback } from 'react';
 import { useWallet } from '@solana/wallet-adapter-react';
 import { useProgram } from '@/hooks/useProgram';
 import { ManejadorEventosClient, EventoInfo } from '@/utils/eventosClient';
+import { ComprarTokens } from './ComprarTokens';
+import { ComprarEntradas } from './ComprarEntradas';
+
+type Tab = 'tokens' | 'entradas' | '';
 
 export function ListaEventos() {
     const { publicKey } = useWallet();
@@ -14,6 +18,7 @@ export function ListaEventos() {
     const [eventoIdBuscar, setEventoIdBuscar] = useState('');
     const [autoridadBuscar, setAutoridadBuscar] = useState('');
     const [vistaActual, setVistaActual] = useState<'todos' | 'buscar'>('todos');
+    const [activeTabs, setActiveTabs] = useState<Record<string, Tab>>({});
 
     const cargarTodosLosEventos = useCallback(async () => {
         if (!program || !provider) {
@@ -32,6 +37,20 @@ export function ListaEventos() {
             setLoading(false);
         }
     }, [program, provider]);
+
+    const eliminarTodosLosEventos = async () => {
+        if (!program || !publicKey) return;
+
+        try {
+            const client = new ManejadorEventosClient(program, provider!.connection);
+            await client.eliminarTodosLosEventos();
+            alert('Todos los eventos han sido eliminados exitosamente.');
+            setEventos([]);
+        } catch (error) {
+            console.error('Error al eliminar todos los eventos:', error);
+            alert('Error al eliminar todos los eventos. Verifica la consola para más detalles.');
+        }
+    };
 
     // Cargar todos los eventos al montar el componente
     useEffect(() => {
@@ -141,6 +160,14 @@ export function ListaEventos() {
         }
     };
 
+    // Función para manejar el toggle de las pestañas por evento
+    const handleTabToggle = (eventoId: string, tab: Tab) => {
+        setActiveTabs(prev => ({
+            ...prev,
+            [eventoId]: prev[eventoId] === tab ? '' : tab
+        }));
+    };
+
     return (
         <div className="space-y-6">
             <h2 className="text-2xl font-bold text-white mb-6">Explorar Eventos</h2>
@@ -211,17 +238,26 @@ export function ListaEventos() {
 
             {/* Botón para recargar todos los eventos */}
             {vistaActual === 'todos' && (
-                <div className="flex justify-between items-center">
-                    <p className="text-blue-200">
+                <div className="flex flex-col md:flex-row md:justify-between items-center gap-2 md:gap-4">
+                    <p className="text-blue-200 mb-2 md:mb-0">
                         {eventos.length > 0 ? `Mostrando ${eventos.length} evento(s)` : 'No hay eventos disponibles'}
                     </p>
-                    <button
-                        onClick={cargarTodosLosEventos}
-                        disabled={loading}
-                        className="bg-blue-600 hover:bg-blue-700 disabled:bg-blue-800 disabled:cursor-not-allowed text-white font-medium py-2 px-4 rounded-md transition-colors"
-                    >
-                        {loading ? 'Cargando...' : 'Recargar'}
-                    </button>
+                    <div className="flex gap-2">
+                        <button
+                            onClick={eliminarTodosLosEventos}
+                            disabled={loading}
+                            className="bg-red-600 hover:bg-red-700 disabled:bg-red-800 disabled:cursor-not-allowed text-white font-medium py-2 px-4 rounded-md transition-colors"
+                        >
+                            {loading ? 'Cargando...' : 'Borrar Todos los Eventos'}
+                        </button>
+                        <button
+                            onClick={cargarTodosLosEventos}
+                            disabled={loading}
+                            className="bg-blue-600 hover:bg-blue-700 disabled:bg-blue-800 disabled:cursor-not-allowed text-white font-medium py-2 px-4 rounded-md transition-colors"
+                        >
+                            {loading ? 'Cargando...' : 'Recargar'}
+                        </button>
+                    </div>
                 </div>
             )}
 
@@ -271,12 +307,34 @@ export function ListaEventos() {
                             {publicKey && evento.autoridad.equals(publicKey) && (
                                 <div className="mt-4 pt-4 border-t border-white/10">
                                     {evento.activo ? (
-                                        <button
-                                            onClick={() => finalizarEvento(evento)}
-                                            className="bg-red-600 hover:bg-red-700 text-white font-medium py-2 px-4 rounded-md transition-colors"
-                                        >
-                                            Finalizar Evento
-                                        </button>
+                                        <div className='flex justify-between items-center'>
+                                            <button
+                                                onClick={() => finalizarEvento(evento)}
+                                                className="bg-red-600 hover:bg-red-700 text-white font-medium py-2 px-4 rounded-md transition-colors"
+                                            >
+                                                Finalizar Evento
+                                            </button>
+                                            <div className='flex space-x-2'>
+                                                <button
+                                                    onClick={() => handleTabToggle(evento.id, 'tokens')}
+                                                    className={`font-medium py-2 px-4 rounded-md transition-colors ${activeTabs[evento.id] === 'tokens'
+                                                        ? 'bg-blue-800 text-white'
+                                                        : 'bg-blue-600 hover:bg-blue-700 text-white'
+                                                        }`}
+                                                >
+                                                    {activeTabs[evento.id] === 'tokens' ? 'Cerrar Tokens' : 'Comprar Tokens'}
+                                                </button>
+                                                <button
+                                                    onClick={() => handleTabToggle(evento.id, 'entradas')}
+                                                    className={`font-medium py-2 px-4 rounded-md transition-colors ${activeTabs[evento.id] === 'entradas'
+                                                        ? 'bg-green-800 text-white'
+                                                        : 'bg-green-600 hover:bg-green-700 text-white'
+                                                        }`}
+                                                >
+                                                    {activeTabs[evento.id] === 'entradas' ? 'Cerrar Entradas' : 'Comprar Entradas'}
+                                                </button>
+                                            </div>
+                                        </div>
                                     ) : (
                                         <div className="space-x-2">
                                             <span className="text-blue-200 text-sm">
@@ -288,6 +346,19 @@ export function ListaEventos() {
                                             >
                                                 🗑️ Eliminar Evento
                                             </button>
+                                        </div>
+                                    )}
+
+                                    {/* Contenido de las pestañas con animación */}
+                                    {activeTabs[evento.id] && activeTabs[evento.id] !== '' && (
+                                        <div className="mt-4 min-h-[400px] animate-in slide-in-from-top-2 duration-300">
+                                            {activeTabs[evento.id] === 'tokens' && (
+                                                <ComprarTokens
+                                                    eventoId={evento.id}
+                                                    autoridadEvento={evento.autoridad}
+                                                />
+                                            )}
+                                            {activeTabs[evento.id] === 'entradas' && <ComprarEntradas eventoId={evento.id} autoridadEvento={evento.autoridad} />}
                                         </div>
                                     )}
                                 </div>
