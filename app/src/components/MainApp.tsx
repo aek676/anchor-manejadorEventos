@@ -4,8 +4,6 @@ import { useState } from 'react';
 import { WalletMultiButton } from '@/components/WalletProvider';
 import { CrearEvento } from '@/components/CrearEvento';
 import { ListaEventos } from '@/components/ListaEventos';
-import { ComprarTokens } from '@/components/ComprarTokens';
-import { ComprarEntradas } from '@/components/ComprarEntradas';
 import { useWallet } from '@solana/wallet-adapter-react';
 
 type Tab = 'crear' | 'eventos' | 'tokens' | 'entradas';
