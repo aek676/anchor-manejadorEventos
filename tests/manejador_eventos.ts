@@ -167,7 +167,6 @@ describe("Test", () => {
     assert.equal(infoEvento.precioToken.toNumber(), precioToken * 10 ** 2);
   });
 
-  /*
   it("Comprar token de evento", async () => {
     let infoCuentaTokenAceptadoBob = await spl.getAccount(
       program.provider.connection,
@@ -207,6 +206,18 @@ describe("Test", () => {
       cuentaTokenAceptadoBob
     );
     console.log("Saldo token aceptado de Bob, Despues: ", infoCuentaTokenAceptadoBob.amount);
+
+    const colaboradores = await program.account.colaborador.all([
+      {
+        memcmp: {
+          offset: 8, // Offset del campo 'evento' en la cuenta de colaborador al ser el primero
+          bytes: evento.toBase58(), // Convertimos la PDA a base58
+        }
+      }
+    ]);
+
+    const colaboradorBob = colaboradores.find(c => c.account.wallet.toBase58() === bob.publicKey.toBase58());
+    assert(colaboradorBob !== undefined, "Bob debería estar en la lista de colaboradores");
   });
 
   it("Alice compra 2 entradas del evento", async () => {
@@ -375,7 +386,6 @@ describe("Test", () => {
     infoBovedaGanancias = await spl.getAccount(program.provider.connection, bovedaGanancias);
     console.log("Saldo de la boveda de ganancias, Despues: ", infoBovedaGanancias.amount);
   });
-  */
 });
 
 const tranferirSOL = async (destinatario: anchor.web3.PublicKey, cantidad = 1.0) => {

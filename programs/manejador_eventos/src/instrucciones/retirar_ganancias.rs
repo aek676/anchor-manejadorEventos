@@ -11,7 +11,7 @@ pub struct RetirarGanancias<'info> {
         seeds = [
             evento.id.as_ref(),
             Evento::SEMILLA_EVENTO.as_bytes(),
-            autoridad.key().as_ref(),
+            evento.autoridad.key().as_ref(),
         ],
         bump = evento.bump_evento,
         constraint = evento.activo == false @ CodigoError::EventoActivo,
@@ -53,9 +53,6 @@ pub struct RetirarGanancias<'info> {
 
     #[account(mut)]
     pub colaborador: Signer<'info>,
-
-    #[account(mut)]
-    pub autoridad: Signer<'info>,
 
     pub token_program: Program<'info, Token>,
     pub associated_token_program: Program<'info, AssociatedToken>,

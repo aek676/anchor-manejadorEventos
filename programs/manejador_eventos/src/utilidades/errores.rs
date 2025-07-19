@@ -25,4 +25,13 @@ pub enum CodigoError {
 
     #[msg("El evento sigue activo")]
     EventoActivo,
+
+    #[msg("La cantidad solicitada es invalida")]
+    CantidadInvalida,
+
+    #[msg("Overflow al intentar realizar la operacion")]
+    OverflowError,
+
+    #[msg("No hay suficientes tokens disponibles para la compra")]
+    TokensInsuficientes,
 }
