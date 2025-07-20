@@ -5,8 +5,10 @@ import { WalletMultiButton } from '@/components/WalletProvider';
 import { CrearEvento } from '@/components/CrearEvento';
 import { ListaEventos } from '@/components/ListaEventos';
 import { useWallet } from '@solana/wallet-adapter-react';
+import { EventosDeColaborador } from './EventosDeColaborador';
+import { MisEventos } from './MisEventos';
 
-type Tab = 'crear' | 'eventos' | 'tokens' | 'entradas';
+type Tab = 'crear' | 'eventos' | 'colaboraciones' | 'misEventos';
 
 export function MainApp() {
     const [activeTab, setActiveTab] = useState<Tab>('eventos');
@@ -49,12 +51,34 @@ export function MainApp() {
                         >
                             ➕ Crear Evento
                         </button>
+                        <button
+                            onClick={() => setActiveTab('colaboraciones')}
+                            className={`flex-1 py-2 px-4 rounded-md text-sm font-medium transition-colors ${activeTab === 'crear'
+                                ? 'bg-blue-600 text-white'
+                                : 'text-blue-200 hover:text-white hover:bg-white/10'
+                                }`}
+                        >
+                            🤝 Eventos Colaborando
+                        </button>
+                        <button
+                            onClick={() => setActiveTab('misEventos')}
+                            className={`flex-1 py-2 px-4 rounded-md text-sm font-medium transition-colors ${activeTab === 'misEventos'
+                                ? 'bg-blue-600 text-white'
+                                : 'text-blue-200 hover:text-white hover:bg-white/10'
+                                }`}
+                        >
+                            🎟️ Mis eventos
+                        </button>
                     </div>
 
                     {/* Tab Content */}
                     <div className="min-h-[400px]">
                         {activeTab === 'eventos' && <ListaEventos />}
                         {activeTab === 'crear' && <CrearEvento />}
+                        {activeTab === 'colaboraciones' && <EventosDeColaborador />}
+                        {activeTab === 'misEventos' && (
+                            <MisEventos />
+                        )}
                     </div>
                 </div>
             ) : (

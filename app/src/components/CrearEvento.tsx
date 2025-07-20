@@ -46,19 +46,13 @@ export function CrearEvento() {
 
             const eventoId = Date.now().toString();
 
-            // NO multiplicar por decimales aquí - el programa Rust ya lo hace
-            const precioEntrada = 1.2;
-            const precioToken = 2.4;
-
-            console.log('Precio entrada a enviar:', precioEntrada);
-            console.log('Precio token a enviar:', precioToken);
 
             const result = await client.crearEvento(
                 eventoId,
                 formData.nombre,
                 formData.descripcion,
-                precioEntrada, // Enviar como número decimal directo
-                precioToken,   // Enviar como número decimal directo
+                Number(formData.precioEntrada), // Enviar como número decimal directo
+                Number(formData.precioToken),   // Enviar como número decimal directo
                 tokenAceptado,
                 publicKey
             );

@@ -150,6 +150,38 @@
           }
         },
         {
+          "name": "colaborador",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  99,
+                  111,
+                  108,
+                  97,
+                  98,
+                  111,
+                  114,
+                  97,
+                  100,
+                  111,
+                  114
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "evento"
+              },
+              {
+                "kind": "account",
+                "path": "comprador"
+              }
+            ]
+          }
+        },
+        {
           "name": "cuenta_comprador_token_evento",
           "writable": true,
           "pda": {
@@ -930,7 +962,8 @@
               },
               {
                 "kind": "account",
-                "path": "autoridad"
+                "path": "evento.autoridad",
+                "account": "Evento"
               }
             ]
           }
@@ -1011,11 +1044,6 @@
           "signer": true
         },
         {
-          "name": "autoridad",
-          "writable": true,
-          "signer": true
-        },
-        {
           "name": "token_program",
           "address": "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA"
         },
@@ -1032,6 +1060,19 @@
     }
   ],
   "accounts": [
+    {
+      "name": "Colaborador",
+      "discriminator": [
+        20,
+        51,
+        77,
+        170,
+        99,
+        208,
+        44,
+        122
+      ]
+    },
     {
       "name": "Evento",
       "discriminator": [
@@ -1081,9 +1122,48 @@
       "code": 6006,
       "name": "EventoActivo",
       "msg": "El evento sigue activo"
+    },
+    {
+      "code": 6007,
+      "name": "CantidadInvalida",
+      "msg": "La cantidad solicitada es invalida"
+    },
+    {
+      "code": 6008,
+      "name": "OverflowError",
+      "msg": "Overflow al intentar realizar la operacion"
+    },
+    {
+      "code": 6009,
+      "name": "TokensInsuficientes",
+      "msg": "No hay suficientes tokens disponibles para la compra"
     }
   ],
   "types": [
+    {
+      "name": "Colaborador",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "evento",
+            "type": "pubkey"
+          },
+          {
+            "name": "wallet",
+            "type": "pubkey"
+          },
+          {
+            "name": "tokens_comprados",
+            "type": "u64"
+          },
+          {
+            "name": "bump",
+            "type": "u8"
+          }
+        ]
+      }
+    },
     {
       "name": "Evento",
       "type": {

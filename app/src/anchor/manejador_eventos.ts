@@ -156,6 +156,38 @@ export type ManejadorEventos = {
           }
         },
         {
+          "name": "colaborador",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  99,
+                  111,
+                  108,
+                  97,
+                  98,
+                  111,
+                  114,
+                  97,
+                  100,
+                  111,
+                  114
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "evento"
+              },
+              {
+                "kind": "account",
+                "path": "comprador"
+              }
+            ]
+          }
+        },
+        {
           "name": "cuentaCompradorTokenEvento",
           "writable": true,
           "pda": {
@@ -936,7 +968,8 @@ export type ManejadorEventos = {
               },
               {
                 "kind": "account",
-                "path": "autoridad"
+                "path": "evento.autoridad",
+                "account": "evento"
               }
             ]
           }
@@ -1017,11 +1050,6 @@ export type ManejadorEventos = {
           "signer": true
         },
         {
-          "name": "autoridad",
-          "writable": true,
-          "signer": true
-        },
-        {
           "name": "tokenProgram",
           "address": "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA"
         },
@@ -1038,6 +1066,19 @@ export type ManejadorEventos = {
     }
   ],
   "accounts": [
+    {
+      "name": "colaborador",
+      "discriminator": [
+        20,
+        51,
+        77,
+        170,
+        99,
+        208,
+        44,
+        122
+      ]
+    },
     {
       "name": "evento",
       "discriminator": [
@@ -1087,9 +1128,48 @@ export type ManejadorEventos = {
       "code": 6006,
       "name": "eventoActivo",
       "msg": "El evento sigue activo"
+    },
+    {
+      "code": 6007,
+      "name": "cantidadInvalida",
+      "msg": "La cantidad solicitada es invalida"
+    },
+    {
+      "code": 6008,
+      "name": "overflowError",
+      "msg": "Overflow al intentar realizar la operacion"
+    },
+    {
+      "code": 6009,
+      "name": "tokensInsuficientes",
+      "msg": "No hay suficientes tokens disponibles para la compra"
     }
   ],
   "types": [
+    {
+      "name": "colaborador",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "evento",
+            "type": "pubkey"
+          },
+          {
+            "name": "wallet",
+            "type": "pubkey"
+          },
+          {
+            "name": "tokensComprados",
+            "type": "u64"
+          },
+          {
+            "name": "bump",
+            "type": "u8"
+          }
+        ]
+      }
+    },
     {
       "name": "evento",
       "type": {

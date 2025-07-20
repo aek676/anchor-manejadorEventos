@@ -3,6 +3,7 @@ import { Program } from '@coral-xyz/anchor';
 import { ManejadorEventos } from '../anchor/manejador_eventos';
 import * as spl from '@solana/spl-token';
 import { BN } from 'bn.js';
+import { memo } from 'react';
 
 export interface EventoInfo {
     id: string;
@@ -195,7 +196,6 @@ export class ManejadorEventosClient {
                 cuentaColaboradorTokenAceptado,
                 cuentaColaboradorTokenEvento,
                 colaborador: colaborador.publicKey,
-                autoridad: autoridad,
             })
             .signers([colaborador])
             .rpc();
@@ -280,6 +280,11 @@ export class ManejadorEventosClient {
         }
     }
 
+    async getEventosPorAutoridad(autoridad: PublicKey): Promise<EventoInfo[]> {
+        const eventos = await this.getAllEventos();
+        return eventos.filter(evento => evento.autoridad.equals(autoridad));
+    }
+
     // Obtener todos los eventos del programa
     async getAllEventos(): Promise<EventoInfo[]> {
         try {
@@ -353,6 +358,48 @@ export class ManejadorEventosClient {
             }
         }
     }
+
+
+    // Obtener todos los eventos donde una wallet es colaborador
+    async getEventosDeColaborador(colaborador: PublicKey): Promise<EventoInfo[]> {
+        // La cuenta Colaborador tiene: discriminante (8) + evento (32) + wallet (32)
+        // El campo wallet empieza en offset 40
+        const colaboradorAccounts = await this.program.account.colaborador.all([
+            {
+                memcmp: {
+                    offset: 40,
+                    bytes: colaborador.toBase58(),
+                }
+            }
+        ]);
+
+        // Obtener los eventos únicos
+        const eventoPubkeys = colaboradorAccounts.map(c => c.account.evento);
+        const eventosInfo: EventoInfo[] = [];
+        for (const eventoPubkey of eventoPubkeys) {
+            try {
+                const eventoAccount = await this.program.account.evento.fetch(eventoPubkey);
+                const mintInfo = await spl.getMint(this.connection, eventoAccount.tokenAceptado);
+                eventosInfo.push({
+                    id: eventoAccount.id,
+                    nombre: eventoAccount.nombre,
+                    descripcion: eventoAccount.descripcion,
+                    precioEntrada: eventoAccount.precioEntrada.toNumber() / Math.pow(10, mintInfo.decimals),
+                    precioToken: eventoAccount.precioToken.toNumber() / Math.pow(10, mintInfo.decimals),
+                    entradasVendidas: eventoAccount.entradasVendidas.toNumber(),
+                    totalSponsors: eventoAccount.totalSponsors.toNumber(),
+                    activo: eventoAccount.activo,
+                    autoridad: eventoAccount.autoridad,
+                    tokenAceptado: eventoAccount.tokenAceptado,
+                });
+            } catch {
+                // Si no se puede obtener el evento, lo ignoramos
+            }
+        }
+        return eventosInfo;
+    }
+
+
 
     // Obtener dirección de cuenta de token asociada
     async getAssociatedTokenAddress(

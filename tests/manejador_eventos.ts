@@ -371,7 +371,6 @@ describe("Test", () => {
         cuentaColaboradorTokenEvento: cuentaTokenEventoBob,
         cuentaColaboradorTokenAceptado: cuentaTokenAceptadoBob,
         colaborador: bob.publicKey,
-        autoridad: autoridad.publicKey,
       })
       .signers([bob])
       .rpc();
