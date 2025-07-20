@@ -53,7 +53,7 @@ export function MainApp() {
                         </button>
                         <button
                             onClick={() => setActiveTab('colaboraciones')}
-                            className={`flex-1 py-2 px-4 rounded-md text-sm font-medium transition-colors ${activeTab === 'crear'
+                            className={`flex-1 py-2 px-4 rounded-md text-sm font-medium transition-colors ${activeTab === 'colaboraciones'
                                 ? 'bg-blue-600 text-white'
                                 : 'text-blue-200 hover:text-white hover:bg-white/10'
                                 }`}

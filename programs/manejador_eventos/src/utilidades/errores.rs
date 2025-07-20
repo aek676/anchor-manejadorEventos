@@ -34,4 +34,10 @@ pub enum CodigoError {
 
     #[msg("No hay suficientes tokens disponibles para la compra")]
     TokensInsuficientes,
+
+    #[msg("El colaborador tiene saldo pendiente")]
+    ColaboradorConSaldo,
+
+    #[msg("La wallet del colaborador no coincide con la esperada")]
+    WalletIncorrecta,
 }

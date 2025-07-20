@@ -1,9 +1,8 @@
-import { PublicKey, Connection, Signer } from '@solana/web3.js';
+import { PublicKey, Connection } from '@solana/web3.js';
 import { Program } from '@coral-xyz/anchor';
 import { ManejadorEventos } from '../anchor/manejador_eventos';
 import * as spl from '@solana/spl-token';
 import { BN } from 'bn.js';
-import { memo } from 'react';
 
 export interface EventoInfo {
     id: string;
@@ -184,7 +183,7 @@ export class ManejadorEventosClient {
         return tx;
     }
 
-    async retirarGanancias(eventoId: string, autoridad: PublicKey, cuentaColaboradorTokenAceptado: PublicKey, cuentaColaboradorTokenEvento: PublicKey, colaborador: Signer) {
+    async retirarGanancias(eventoId: string, autoridad: PublicKey, cuentaColaboradorTokenAceptado: PublicKey, cuentaColaboradorTokenEvento: PublicKey, colaborador: PublicKey) {
         const pdas = this.findEventoPDAs(eventoId, autoridad);
 
         const tx = await this.program.methods
@@ -195,13 +194,13 @@ export class ManejadorEventosClient {
                 bovedaGanancias: pdas.bovedaGanancias,
                 cuentaColaboradorTokenAceptado,
                 cuentaColaboradorTokenEvento,
-                colaborador: colaborador.publicKey,
+                colaborador: colaborador,
             })
-            .signers([colaborador])
-            .rpc();
+            .transaction();
 
         return tx;
     }
+
 
     // Verificar si un evento puede ser eliminado
     async verificarCondicionesEliminacion(eventoId: string, autoridad: PublicKey): Promise<{
@@ -311,54 +310,6 @@ export class ManejadorEventosClient {
             return [];
         }
     }
-
-    // Elimina todos los eventos del programa
-    async eliminarTodosLosEventos(colaborador?: Signer) {
-        const eventos = await this.getAllEventos();
-        for (const evento of eventos) {
-            // Finalizar si está activo
-            if (evento.activo) {
-                await this.finalizarEvento(evento.id, evento.autoridad);
-            }
-
-            // Obtener PDAs
-            const pdas = this.findEventoPDAs(evento.id, evento.autoridad);
-
-            // Retirar fondos de bóveda del evento
-            const bovedaEventoBalance = await this.connection.getTokenAccountBalance(pdas.bovedaEvento);
-            if (bovedaEventoBalance.value.uiAmount && bovedaEventoBalance.value.uiAmount > 0) {
-                const cuentaTokenAceptadoAutoridad = await this.getAssociatedTokenAddress(evento.tokenAceptado, evento.autoridad);
-                await this.retirarFondos(
-                    evento.id,
-                    evento.autoridad,
-                    Math.floor(bovedaEventoBalance.value.uiAmount * 100),
-                    evento.tokenAceptado,
-                    cuentaTokenAceptadoAutoridad
-                );
-            }
-
-            // Retirar ganancias de bóveda de ganancias (si aplica y tienes colaborador)
-            const bovedaGananciasBalance = await this.connection.getTokenAccountBalance(pdas.bovedaGanancias);
-            if (bovedaGananciasBalance.value.uiAmount && bovedaGananciasBalance.value.uiAmount > 0 && colaborador) {
-                const cuentaColaboradorTokenAceptado = await this.getAssociatedTokenAddress(evento.tokenAceptado, colaborador.publicKey);
-                const cuentaColaboradorTokenEvento = await this.getAssociatedTokenAddress(pdas.tokenEvento, colaborador.publicKey);
-                await this.retirarGanancias(
-                    evento.id,
-                    evento.autoridad,
-                    cuentaColaboradorTokenAceptado,
-                    cuentaColaboradorTokenEvento,
-                    colaborador
-                );
-            }
-
-            // Verificar condiciones y eliminar
-            const condiciones = await this.verificarCondicionesEliminacion(evento.id, evento.autoridad);
-            if (condiciones.puedeEliminar) {
-                await this.eliminarEvento(evento.id, evento.autoridad);
-            }
-        }
-    }
-
 
     // Obtener todos los eventos donde una wallet es colaborador
     async getEventosDeColaborador(colaborador: PublicKey): Promise<EventoInfo[]> {

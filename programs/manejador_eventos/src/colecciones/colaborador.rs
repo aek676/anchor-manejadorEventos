@@ -3,9 +3,8 @@ use anchor_lang::prelude::*;
 #[account]
 #[derive(InitSpace)]
 pub struct Colaborador {
-    pub evento: Pubkey,        // Referencia al evento
-    pub wallet: Pubkey,        // Wallet del colaborador
-    pub tokens_comprados: u64, // Tokens comprados por el colaborador
+    pub evento: Pubkey, // Referencia al evento
+    pub wallet: Pubkey, // Wallet del colaborador
 
     pub bump: u8,
 }

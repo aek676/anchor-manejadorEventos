@@ -46,4 +46,8 @@ pub mod manejador_eventos {
     pub fn retirar_ganancias(ctx: Context<RetirarGanancias>) -> Result<()> {
         instrucciones::retirar_ganancias(ctx)
     }
+
+    pub fn eliminar_colaborador(ctx: Context<EliminarColaborador>) -> Result<()> {
+        instrucciones::eliminar_colaborador(ctx)
+    }
 }

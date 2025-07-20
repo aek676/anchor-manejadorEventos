@@ -38,20 +38,6 @@ export function ListaEventos() {
         }
     }, [program, provider]);
 
-    const eliminarTodosLosEventos = async () => {
-        if (!program || !publicKey) return;
-
-        try {
-            const client = new ManejadorEventosClient(program, provider!.connection);
-            await client.eliminarTodosLosEventos();
-            alert('Todos los eventos han sido eliminados exitosamente.');
-            setEventos([]);
-        } catch (error) {
-            console.error('Error al eliminar todos los eventos:', error);
-            alert('Error al eliminar todos los eventos. Verifica la consola para más detalles.');
-        }
-    };
-
     // Cargar todos los eventos al montar el componente
     useEffect(() => {
         if (vistaActual === 'todos') {
@@ -243,13 +229,6 @@ export function ListaEventos() {
                         {eventos.length > 0 ? `Mostrando ${eventos.length} evento(s)` : 'No hay eventos disponibles'}
                     </p>
                     <div className="flex gap-2">
-                        <button
-                            onClick={eliminarTodosLosEventos}
-                            disabled={loading}
-                            className="bg-red-600 hover:bg-red-700 disabled:bg-red-800 disabled:cursor-not-allowed text-white font-medium py-2 px-4 rounded-md transition-colors"
-                        >
-                            {loading ? 'Cargando...' : 'Borrar Todos los Eventos'}
-                        </button>
                         <button
                             onClick={cargarTodosLosEventos}
                             disabled={loading}
