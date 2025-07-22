@@ -43,4 +43,7 @@ pub enum CodigoError {
 
     #[msg("No hay colaboradores registrados en el evento")]
     NoHayColaboradores,
+
+    #[msg("El colaborador no pertenece al evento")]
+    ColaboradorNoPertenece,
 }

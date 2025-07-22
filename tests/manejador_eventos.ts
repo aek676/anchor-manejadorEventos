@@ -21,11 +21,13 @@ describe("Test", () => {
   let bovedaEvento: anchor.web3.PublicKey;
   let bovedaGanancias: anchor.web3.PublicKey;
 
+
   // Id del evento
   let id: string = Date.now().toString();
 
   // CUENTA DE BOB
   let bob: anchor.web3.Keypair;
+  let colaboradorPDABob: anchor.web3.PublicKey;
 
   let cuentaTokenAceptadoBob: anchor.web3.PublicKey;
   let cuentaTokenEventoBob: anchor.web3.PublicKey;
@@ -81,6 +83,11 @@ describe("Test", () => {
     // Inicializamos la cuenta de token aceptado de Bob
     bob = anchor.web3.Keypair.generate();
     await tranferirSOL(bob.publicKey, 1.0);
+
+    [colaboradorPDABob] = anchor.web3.PublicKey.findProgramAddressSync(
+      [Buffer.from("colaborador"), evento.toBuffer(), bob.publicKey.toBuffer()],
+      program.programId
+    );
 
     cuentaTokenAceptadoBob = await spl.createAssociatedTokenAccount(
       program.provider.connection,
@@ -179,6 +186,7 @@ describe("Test", () => {
     const tx = await program.methods.comprarTokenEvento(cantidad)
       .accounts({
         evento: evento,
+        colaborador: colaboradorPDABob,
         cuentaCompradorTokenEvento: cuentaTokenEventoBob,
         tokenEvento: tokenEvento,
         cuentaCompradorTokenAceptado: cuentaTokenAceptadoBob,
@@ -361,8 +369,6 @@ describe("Test", () => {
     let infoBovedaGanancias = await spl.getAccount(program.provider.connection, bovedaGanancias);
     console.log("Saldo de la boveda de ganancias, Antes: ", infoBovedaGanancias.amount);
 
-    const cantidad = new BN(5);
-
     const tx = await program.methods.retirarGanancias()
       .accountsPartial({
         evento: evento,
@@ -385,6 +391,54 @@ describe("Test", () => {
     infoBovedaGanancias = await spl.getAccount(program.provider.connection, bovedaGanancias);
     console.log("Saldo de la boveda de ganancias, Despues: ", infoBovedaGanancias.amount);
   });
+
+  it("Eliminar colaborador Bob", async () => {
+    const infoCuentaTokenEventoBob = await spl.getAccount(
+      program.provider.connection,
+      cuentaTokenEventoBob
+    );
+
+    console.log("Saldo de tokens de Bob antes de eliminar:", infoCuentaTokenEventoBob.amount);
+
+    // Si Bob tiene tokens, el test fallará con el constraint ColaboradorConSaldo
+    if (infoCuentaTokenEventoBob.amount > 0) {
+      console.log("⚠️  Bob tiene tokens pendientes. Debe retirar sus ganancias primero.");
+    }
+
+    const tx = await program.methods.eliminarColaborador()
+      .accounts({
+        evento: evento,
+        colaborador: colaboradorPDABob,
+        tokenEvento: tokenEvento,
+        cuentaColaboradorTokenEvento: cuentaTokenEventoBob,
+        walletColaborador: bob.publicKey, // Esta es la cuenta que recibe los lamports
+        autoridad: autoridad.publicKey,
+      })
+      .signers([autoridad, bob]) // ← ¡Ambos deben firmar! Bob debe autorizar el cierre de sus cuentas
+      .rpc();
+
+    const latestBlockhash = await program.provider.connection.getLatestBlockhash();
+    await program.provider.connection.confirmTransaction({
+      blockhash: latestBlockhash.blockhash,
+      lastValidBlockHeight: latestBlockhash.lastValidBlockHeight,
+      signature: tx,
+    });
+
+    // Verificamos que el colaborador ya no existe
+    const colaboradores = await program.account.colaborador.all([
+      {
+        memcmp: {
+          offset: 8, // Offset del campo 'evento' en la cuenta de colaborador al ser el primero
+          bytes: evento.toBase58(), // Convertimos la PDA a base58
+        }
+      }
+    ]);
+
+    const colaboradorBob = colaboradores.find(c => c.account.wallet.toBase58() === bob.publicKey.toBase58());
+    assert(colaboradorBob === undefined, "Bob debería haber sido eliminado como colaborador");
+  });
+
+
 });
 
 const tranferirSOL = async (destinatario: anchor.web3.PublicKey, cantidad = 1.0) => {
