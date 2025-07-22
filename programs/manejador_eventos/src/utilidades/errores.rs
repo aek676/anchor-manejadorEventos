@@ -40,4 +40,7 @@ pub enum CodigoError {
 
     #[msg("La wallet del colaborador no coincide con la esperada")]
     WalletIncorrecta,
+
+    #[msg("No hay colaboradores registrados en el evento")]
+    NoHayColaboradores,
 }

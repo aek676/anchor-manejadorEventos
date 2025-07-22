@@ -33,11 +33,22 @@ pub struct EliminarColaborador<'info> {
 
     #[account(
         mut,
-        constraint = cuenta_colaborador_token_aceptado.mint == evento.token_aceptado @ CodigoError::TokenIncorrecto,
-        constraint = cuenta_colaborador_token_aceptado.owner == wallet_colaborador.key() @ CodigoError::UsuarioNoAutorizado,
-        constraint = cuenta_colaborador_token_aceptado.amount == 0 @ CodigoError::ColaboradorConSaldo,
+        seeds = [
+            Evento::SEMILLA_TOKEN_EVENTO.as_bytes(),
+            evento.key().as_ref(),
+        ],
+        bump = evento.bump_token_evento,
     )]
-    pub cuenta_colaborador_token_aceptado: Account<'info, TokenAccount>,
+    pub token_evento: Account<'info, Mint>,
+
+    #[account(
+        mut,
+        constraint = cuenta_colaborador_token_evento.mint == token_evento.key() @ CodigoError::TokenIncorrecto,
+        constraint = cuenta_colaborador_token_evento.owner == colaborador.key() @ CodigoError::UsuarioNoAutorizado,
+        constraint = cuenta_colaborador_token_evento.amount == 0 @ CodigoError::ColaboradorConSaldo,
+        close = wallet_colaborador
+    )]
+    pub cuenta_colaborador_token_evento: Account<'info, TokenAccount>,
 
     /// CHECK: Wallet del colaborador que recibe los lamports
     #[account(
@@ -55,7 +66,12 @@ pub struct EliminarColaborador<'info> {
 }
 
 pub fn eliminar_colaborador(ctx: Context<EliminarColaborador>) -> Result<()> {
-    // Solo decrementar colaboradores actuales, no el total histórico
+    // Solo decrementar sponsors actuales, no el total histórico
+    require!(
+        ctx.accounts.evento.sponsors_actuales > 0,
+        CodigoError::NoHayColaboradores
+    );
+
     ctx.accounts.evento.sponsors_actuales -= 1;
 
     // Opcional: Emitir evento para auditoría

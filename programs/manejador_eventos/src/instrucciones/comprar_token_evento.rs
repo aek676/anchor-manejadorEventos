@@ -77,7 +77,7 @@ pub fn comprar_token_evento(ctx: Context<ComprarTokenEvento>, cantidad: u64) -> 
     require!(cantidad > 0, CodigoError::CantidadInvalida);
 
     // Verificar si es primera compra (colaborador recién creado)
-    let es_primera_compra = ctx.accounts.cuenta_comprador_token_aceptado.amount == 0;
+    let es_primera_compra = ctx.accounts.cuenta_comprador_token_evento.amount == 0;
 
     // Verificar que no haya overflow al sumar los tokens vendidos
     ctx.accounts
