@@ -542,6 +542,135 @@ export type ManejadorEventos = {
       ]
     },
     {
+      "name": "eliminarColaborador",
+      "discriminator": [
+        88,
+        204,
+        115,
+        171,
+        104,
+        41,
+        151,
+        70
+      ],
+      "accounts": [
+        {
+          "name": "evento",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "account",
+                "path": "evento.id",
+                "account": "evento"
+              },
+              {
+                "kind": "const",
+                "value": [
+                  101,
+                  118,
+                  101,
+                  110,
+                  116,
+                  111
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "evento.autoridad",
+                "account": "evento"
+              }
+            ]
+          }
+        },
+        {
+          "name": "colaborador",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  99,
+                  111,
+                  108,
+                  97,
+                  98,
+                  111,
+                  114,
+                  97,
+                  100,
+                  111,
+                  114
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "evento"
+              },
+              {
+                "kind": "account",
+                "path": "colaborador.wallet",
+                "account": "colaborador"
+              }
+            ]
+          }
+        },
+        {
+          "name": "tokenEvento",
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  116,
+                  111,
+                  107,
+                  101,
+                  110,
+                  95,
+                  101,
+                  118,
+                  101,
+                  110,
+                  116,
+                  111
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "evento"
+              }
+            ]
+          }
+        },
+        {
+          "name": "autoridad",
+          "writable": true,
+          "signer": true,
+          "relations": [
+            "evento"
+          ]
+        },
+        {
+          "name": "colaboradorWallet",
+          "docs": [
+            "It's not a signer but needs to be mutable to receive SOL. Its address is derived from `colaborador.wallet`."
+          ],
+          "writable": true
+        },
+        {
+          "name": "tokenProgram",
+          "address": "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA"
+        },
+        {
+          "name": "systemProgram",
+          "address": "11111111111111111111111111111111"
+        }
+      ],
+      "args": []
+    },
+    {
       "name": "eliminarEvento",
       "discriminator": [
         158,
@@ -1143,6 +1272,26 @@ export type ManejadorEventos = {
       "code": 6009,
       "name": "tokensInsuficientes",
       "msg": "No hay suficientes tokens disponibles para la compra"
+    },
+    {
+      "code": 6010,
+      "name": "colaboradorConSaldo",
+      "msg": "El colaborador tiene saldo pendiente"
+    },
+    {
+      "code": 6011,
+      "name": "walletIncorrecta",
+      "msg": "La wallet del colaborador no coincide con la esperada"
+    },
+    {
+      "code": 6012,
+      "name": "noHayColaboradores",
+      "msg": "No hay colaboradores registrados en el evento"
+    },
+    {
+      "code": 6013,
+      "name": "colaboradorNoPertenece",
+      "msg": "El colaborador no pertenece al evento"
     }
   ],
   "types": [
@@ -1158,10 +1307,6 @@ export type ManejadorEventos = {
           {
             "name": "wallet",
             "type": "pubkey"
-          },
-          {
-            "name": "tokensComprados",
-            "type": "u64"
           },
           {
             "name": "bump",

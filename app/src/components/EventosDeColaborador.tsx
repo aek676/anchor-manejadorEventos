@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useWallet } from '@solana/wallet-adapter-react';
 import { useProgram } from '../hooks/useProgram';
 import { ManejadorEventosClient, EventoInfo } from '../utils/eventosClient';
-import { CodigoError, getMensajeErrorAnchor, isAnchorError } from '@/utils/AnchorError';
+import { CodigoError, getMensajeErrorAnchor } from '@/utils/AnchorError';
 import { SendTransactionError } from '@solana/web3.js';
 
 export function EventosDeColaborador() {

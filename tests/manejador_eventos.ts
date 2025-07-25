@@ -35,6 +35,7 @@ describe("Test", () => {
 
   // CUENTA ALICE
   let alice: anchor.web3.Keypair;
+  let colaboradorPDAAlice: anchor.web3.PublicKey;
 
   let cuentaTokenAceptadoAlice: anchor.web3.PublicKey;
   let cuentaTokenEventoAlice: anchor.web3.PublicKey;
@@ -114,6 +115,11 @@ describe("Test", () => {
     /// COMPRA DE ENTRADAS DE ALICE
     alice = anchor.web3.Keypair.generate();
     await tranferirSOL(alice.publicKey, 0.01);
+
+    [colaboradorPDAAlice] = anchor.web3.PublicKey.findProgramAddressSync(
+      [Buffer.from("colaborador"), evento.toBuffer(), alice.publicKey.toBuffer()],
+      program.programId
+    );
 
     cuentaTokenAceptadoAlice = await spl.createAssociatedTokenAccount(
       program.provider.connection,
@@ -344,6 +350,7 @@ describe("Test", () => {
       .accounts({
         evento: evento,
         cuentaCompradorTokenEvento: cuentaTokenEventoAlice,
+        colaborador: colaboradorPDAAlice,
         tokenEvento: tokenEvento,
         cuentaCompradorTokenAceptado: cuentaTokenAceptadoAlice,
         bovedaEvento: bovedaEvento,
@@ -392,16 +399,15 @@ describe("Test", () => {
     infoBovedaGanancias = await spl.getAccount(program.provider.connection, bovedaGanancias);
     console.log("Saldo de la boveda de ganancias, Despues: ", infoBovedaGanancias.amount);
 
-    const infoCuentaTokenEventoBob = await spl.getAccount(
+    await spl.getAccount(
       program.provider.connection,
       cuentaTokenEventoBob
-    );
-
-    console.log("Tokens del evento de Bob, Despues: ", infoCuentaTokenEventoBob.amount);
-    assert(Number(infoCuentaTokenEventoBob.amount) === 0, "Bob should have no event tokens left after withdrawal");
+    ).catch(e => {
+      assert.isTrue((e instanceof spl.TokenAccountNotFoundError) ? true : false);
+    });
   });
 
-  it("Eliminar a Bob como colaborador y devolverle sus lamports", async () => {
+  it("Eliminar Bob colaborador", async () => {
     const LAMPORTS_PER_SOL = anchor.web3.LAMPORTS_PER_SOL;
     // Get initial SOL balances for verification
     const initialBobSolBalance = await program.provider.connection.getBalance(bob.publicKey);
@@ -425,7 +431,7 @@ describe("Test", () => {
           autoridad: autoridad.publicKey,
           colaboradorWallet: bob.publicKey, // This is the public key of Bob's wallet
         })
-        .signers([autoridad, bob]) // Only 'autoridad' signs this transaction
+        .signers([autoridad]) // Only 'autoridad' signs this transaction
         .rpc();
 
       const latestBlockhash = await program.provider.connection.getLatestBlockhash();
@@ -472,9 +478,134 @@ describe("Test", () => {
     assert.isFalse(errorOccurred, "Elimination of collaborator should not throw an error");
   });
 
-  it("Retirar ganancias Alice y eliminar colaborador", async () => {
+  it("Retirar ganancias Alice", async () => {
     let infoBovedaGanancias = await spl.getAccount(program.provider.connection, bovedaGanancias);
     console.log("Saldo de la boveda de ganancias, Antes: ", infoBovedaGanancias.amount);
+
+    const tx = await program.methods.retirarGanancias()
+      .accountsPartial({
+        evento: evento,
+        tokenEvento: tokenEvento,
+        bovedaGanancias: bovedaGanancias,
+        cuentaColaboradorTokenEvento: cuentaTokenEventoAlice,
+        cuentaColaboradorTokenAceptado: cuentaTokenAceptadoAlice,
+        colaborador: alice.publicKey,
+      })
+      .signers([alice])
+      .rpc();
+
+    const latestBlockhash = await program.provider.connection.getLatestBlockhash();
+    await program.provider.connection.confirmTransaction({
+      blockhash: latestBlockhash.blockhash,
+      lastValidBlockHeight: latestBlockhash.lastValidBlockHeight,
+      signature: tx,
+    });
+
+    infoBovedaGanancias = await spl.getAccount(program.provider.connection, bovedaGanancias);
+    console.log("Saldo de la boveda de ganancias, Despues: ", infoBovedaGanancias.amount);
+
+    await spl.getAccount(
+      program.provider.connection,
+      cuentaTokenEventoAlice
+    ).catch(e => {
+      assert.isTrue((e instanceof spl.TokenAccountNotFoundError) ? true : false);
+    });
+  });
+
+  it("Eliminar colaborador Alice", async () => {
+    const LAMPORTS_PER_SOL = anchor.web3.LAMPORTS_PER_SOL;
+    // Get initial SOL balances for verification
+    const initialAliceSolBalance = await program.provider.connection.getBalance(alice.publicKey);
+    const initialAutoridadSolBalance = await program.provider.connection.getBalance(autoridad.publicKey);
+
+    console.log("Alice's SOL balance before deletion:", initialAliceSolBalance / LAMPORTS_PER_SOL);
+    console.log("Autoridad's SOL balance before deletion:", initialAutoridadSolBalance / LAMPORTS_PER_SOL);
+
+    // Fetch initial event info to check sponsor count later
+    const initialEventoInfo = await program.account.evento.fetch(evento);
+    console.log("Initial sponsors_actuales:", initialEventoInfo.sponsorsActuales.toNumber());
+
+    let errorOccurred = false;
+    try {
+      const tx = await program.methods.eliminarColaborador()
+        .accounts({
+          evento: evento,
+          colaborador: colaboradorPDAAlice,
+          cuentaCompradorTokenEvento: cuentaTokenEventoAlice,
+          tokenEvento: tokenEvento,
+          autoridad: autoridad.publicKey,
+          colaboradorWallet: alice.publicKey, // This is the public key of Alice's wallet
+        })
+        .signers([autoridad]) // Only 'autoridad' signs this transaction
+        .rpc();
+
+      const latestBlockhash = await program.provider.connection.getLatestBlockhash();
+      await program.provider.connection.confirmTransaction({
+        blockhash: latestBlockhash.blockhash,
+        lastValidBlockHeight: latestBlockhash.lastValidBlockHeight,
+        signature: tx,
+      });
+
+      console.log("Transaction ID for eliminating Alice:", tx);
+
+      // Verify the Colaborador account is closed
+      const colaboradorAccountInfo = await program.provider.connection.getAccountInfo(colaboradorPDAAlice);
+      assert.isNull(colaboradorAccountInfo, "Colaborador PDA should be closed (null)");
+
+      // Verify the Token Event Account is closed
+      const cuentaTokenEventoAliceInfo = await program.provider.connection.getAccountInfo(cuentaTokenEventoAlice);
+      assert.isNull(cuentaTokenEventoAliceInfo, "Alice's Event Token Account should be closed (null)");
+
+      // Fetch updated event info
+      const updatedEventoInfo = await program.account.evento.fetch(evento);
+      assert.equal(updatedEventoInfo.sponsorsActuales.toNumber(), initialEventoInfo.sponsorsActuales.toNumber() - 1, "Sponsors count should decrease by 1");
+
+      // Verify SOL balances
+      const finalAliceSolBalance = await program.provider.connection.getBalance(alice.publicKey);
+      const finalAutoridadSolBalance = await program.provider.connection.getBalance(autoridad.publicKey);
+
+      console.log("Alice's SOL balance after deletion:", finalAliceSolBalance / LAMPORTS_PER_SOL);
+      console.log("Autoridad's SOL balance after deletion:", finalAutoridadSolBalance / LAMPORTS_PER_SOL);
+
+      // The exact amount of SOL returned to Alice will depend on the rent exemption amount
+      // of the Colaborador and TokenAccount. We'll check that Alice's balance increased
+      // and authority's balance remained relatively stable (minus transaction fees).
+      assert(finalAliceSolBalance > initialAliceSolBalance, "Alice's SOL balance should increase");
+    } catch (e) {
+      if (e instanceof SendTransactionError) {
+        const logs = await e.getLogs(program.provider.connection);
+        console.error("Anchor error during elimination:", logs);
+      } else {
+        console.error("Error during elimination:", e);
+      }
+      errorOccurred = true;
+    }
+    assert.isFalse(errorOccurred, "Elimination of collaborator should not throw an error");
+  });
+
+  it("Eliminar evento", async () => {
+    let error: anchor.AnchorError;
+    // Llamamos a la instruccion del programa para eliminar el evento
+    const tx = await program.methods.eliminarEvento()
+      .accounts({
+        evento: evento,
+        tokenEvento: tokenEvento,
+        bovedaEvento: bovedaEvento,
+        bovedaGanancias: bovedaGanancias,
+        autoridad: autoridad.publicKey,
+      })
+      .signers([autoridad]) // No haria falta
+      .rpc()
+      .catch(e => {
+        error = e;
+      });
+
+    assert.equal(error.error.errorCode.code, "EventoConSponsors");
+
+    const infoEvento = await program.account.evento.fetch(evento);
+
+    // El evento no deberia tener sponsors
+    assert.equal(0, infoEvento.sponsorsActuales.toNumber(), "El evento no deberia tener sponsors");
   });
 
 });

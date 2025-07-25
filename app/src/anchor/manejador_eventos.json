@@ -536,6 +536,135 @@
       ]
     },
     {
+      "name": "eliminar_colaborador",
+      "discriminator": [
+        88,
+        204,
+        115,
+        171,
+        104,
+        41,
+        151,
+        70
+      ],
+      "accounts": [
+        {
+          "name": "evento",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "account",
+                "path": "evento.id",
+                "account": "Evento"
+              },
+              {
+                "kind": "const",
+                "value": [
+                  101,
+                  118,
+                  101,
+                  110,
+                  116,
+                  111
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "evento.autoridad",
+                "account": "Evento"
+              }
+            ]
+          }
+        },
+        {
+          "name": "colaborador",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  99,
+                  111,
+                  108,
+                  97,
+                  98,
+                  111,
+                  114,
+                  97,
+                  100,
+                  111,
+                  114
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "evento"
+              },
+              {
+                "kind": "account",
+                "path": "colaborador.wallet",
+                "account": "Colaborador"
+              }
+            ]
+          }
+        },
+        {
+          "name": "token_evento",
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  116,
+                  111,
+                  107,
+                  101,
+                  110,
+                  95,
+                  101,
+                  118,
+                  101,
+                  110,
+                  116,
+                  111
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "evento"
+              }
+            ]
+          }
+        },
+        {
+          "name": "autoridad",
+          "writable": true,
+          "signer": true,
+          "relations": [
+            "evento"
+          ]
+        },
+        {
+          "name": "colaborador_wallet",
+          "docs": [
+            "It's not a signer but needs to be mutable to receive SOL. Its address is derived from `colaborador.wallet`."
+          ],
+          "writable": true
+        },
+        {
+          "name": "token_program",
+          "address": "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA"
+        },
+        {
+          "name": "system_program",
+          "address": "11111111111111111111111111111111"
+        }
+      ],
+      "args": []
+    },
+    {
       "name": "eliminar_evento",
       "discriminator": [
         158,
@@ -1137,6 +1266,26 @@
       "code": 6009,
       "name": "TokensInsuficientes",
       "msg": "No hay suficientes tokens disponibles para la compra"
+    },
+    {
+      "code": 6010,
+      "name": "ColaboradorConSaldo",
+      "msg": "El colaborador tiene saldo pendiente"
+    },
+    {
+      "code": 6011,
+      "name": "WalletIncorrecta",
+      "msg": "La wallet del colaborador no coincide con la esperada"
+    },
+    {
+      "code": 6012,
+      "name": "NoHayColaboradores",
+      "msg": "No hay colaboradores registrados en el evento"
+    },
+    {
+      "code": 6013,
+      "name": "ColaboradorNoPertenece",
+      "msg": "El colaborador no pertenece al evento"
     }
   ],
   "types": [
@@ -1152,10 +1301,6 @@
           {
             "name": "wallet",
             "type": "pubkey"
-          },
-          {
-            "name": "tokens_comprados",
-            "type": "u64"
           },
           {
             "name": "bump",

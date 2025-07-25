@@ -2,8 +2,7 @@ use crate::colecciones::*;
 use crate::utilidades::*; // Assuming CodigoError is defined here
 use anchor_lang::prelude::*;
 use anchor_spl::associated_token::*;
-use anchor_spl::token::close_account;
-use anchor_spl::token::{CloseAccount, Mint, Token, TokenAccount};
+use anchor_spl::token::{Mint, Token};
 
 #[derive(Accounts)]
 pub struct EliminarColaborador<'info> {
@@ -33,12 +32,6 @@ pub struct EliminarColaborador<'info> {
     pub colaborador: Account<'info, Colaborador>,
 
     #[account(
-        mut,
-        constraint = cuenta_comprador_token_evento.amount == 0 @ CodigoError::ColaboradorConSaldo,
-    )]
-    pub cuenta_comprador_token_evento: Account<'info, TokenAccount>,
-
-    #[account(
         seeds = [
             Evento::SEMILLA_TOKEN_EVENTO.as_bytes(),
             evento.key().as_ref(),
@@ -53,10 +46,9 @@ pub struct EliminarColaborador<'info> {
     /// CHECK: This account receives the lamports from the closed `colaborador` and `cuenta_comprador_token_evento` accounts.
     /// It's not a signer but needs to be mutable to receive SOL. Its address is derived from `colaborador.wallet`.
     #[account(mut)]
-    pub colaborador_wallet: Signer<'info>,
+    pub colaborador_wallet: AccountInfo<'info>,
 
     pub token_program: Program<'info, Token>,
-    pub associated_token_program: Program<'info, AssociatedToken>,
     pub system_program: Program<'info, System>,
 }
 
@@ -67,17 +59,6 @@ pub fn eliminar_colaborador(ctx: Context<EliminarColaborador>) -> Result<()> {
         ctx.accounts.colaborador_wallet.key() == ctx.accounts.colaborador.wallet.key(),
         CodigoError::WalletIncorrecta
     );
-
-    let ctx_cerrar_cuenta_evento = CpiContext::new(
-        ctx.accounts.token_program.to_account_info(),
-        CloseAccount {
-            account: ctx.accounts.cuenta_comprador_token_evento.to_account_info(),
-            destination: ctx.accounts.colaborador_wallet.to_account_info(),
-            authority: ctx.accounts.colaborador_wallet.to_account_info(),
-        },
-    );
-
-    close_account(ctx_cerrar_cuenta_evento)?;
 
     // Decrement the current sponsors count in the event
     ctx.accounts.evento.sponsors_actuales = ctx

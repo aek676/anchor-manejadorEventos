@@ -84,6 +84,22 @@ pub fn retirar_ganancias(ctx: Context<RetirarGanancias>) -> Result<()> {
 
     burn(ctx_quemar, tokens_colaborador)?;
 
+    msg!("Cerrando cuenta de token del colaborador");
+
+    let ctx_cerrar_cuenta_evento = CpiContext::new(
+        ctx.accounts.token_program.to_account_info(),
+        CloseAccount {
+            account: ctx
+                .accounts
+                .cuenta_colaborador_token_evento
+                .to_account_info(),
+            destination: ctx.accounts.colaborador.to_account_info(),
+            authority: ctx.accounts.colaborador.to_account_info(),
+        },
+    );
+
+    close_account(ctx_cerrar_cuenta_evento)?;
+
     let semillas_firma: &[&[&[u8]]] = &[&[
         ctx.accounts.evento.id.as_ref(),
         Evento::SEMILLA_EVENTO.as_bytes(),
