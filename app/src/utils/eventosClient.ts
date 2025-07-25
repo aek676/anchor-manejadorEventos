@@ -11,6 +11,7 @@ export interface EventoInfo {
     precioEntrada: number;
     precioToken: number;
     entradasVendidas: number;
+    sponsorsActuales: number;
     totalSponsors: number;
     activo: boolean;
     autoridad: PublicKey;
@@ -269,6 +270,7 @@ export class ManejadorEventosClient {
                 precioToken: eventoAccount.precioToken.toNumber() / 100,
                 entradasVendidas: eventoAccount.entradasVendidas.toNumber(),
                 totalSponsors: eventoAccount.totalSponsors.toNumber(),
+                sponsorsActuales: eventoAccount.sponsorsActuales.toNumber(),
                 activo: eventoAccount.activo,
                 autoridad: eventoAccount.autoridad,
                 tokenAceptado: eventoAccount.tokenAceptado,
@@ -299,6 +301,7 @@ export class ManejadorEventosClient {
                     precioToken: eventoAccount.account.precioToken.toNumber() / Math.pow(10, mintInfo.decimals),
                     entradasVendidas: eventoAccount.account.entradasVendidas.toNumber(),
                     totalSponsors: eventoAccount.account.totalSponsors.toNumber(),
+                    sponsorsActuales: eventoAccount.account.sponsorsActuales.toNumber(),
                     activo: eventoAccount.account.activo,
                     autoridad: eventoAccount.account.autoridad,
                     tokenAceptado: eventoAccount.account.tokenAceptado,
@@ -339,6 +342,7 @@ export class ManejadorEventosClient {
                     precioToken: eventoAccount.precioToken.toNumber() / Math.pow(10, mintInfo.decimals),
                     entradasVendidas: eventoAccount.entradasVendidas.toNumber(),
                     totalSponsors: eventoAccount.totalSponsors.toNumber(),
+                    sponsorsActuales: eventoAccount.sponsorsActuales.toNumber(),
                     activo: eventoAccount.activo,
                     autoridad: eventoAccount.autoridad,
                     tokenAceptado: eventoAccount.tokenAceptado,
@@ -349,8 +353,6 @@ export class ManejadorEventosClient {
         }
         return eventosInfo;
     }
-
-
 
     // Obtener dirección de cuenta de token asociada
     async getAssociatedTokenAddress(

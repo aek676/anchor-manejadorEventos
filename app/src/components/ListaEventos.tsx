@@ -273,7 +273,7 @@ export function ListaEventos() {
                                 </div>
                                 <div className="text-center">
                                     <p className="text-blue-200 text-sm">Sponsors</p>
-                                    <p className="text-white font-semibold">{evento.totalSponsors}</p>
+                                    <p className="text-white font-semibold">{evento.sponsorsActuales}</p>
                                 </div>
                             </div>
 

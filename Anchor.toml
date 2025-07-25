@@ -6,7 +6,7 @@ resolution = true
 skip-lint = false
 
 [programs.devnet]
-manejador_eventos = "WAEdkGnMEj3nvktbFLR2eb6uHDEFo5EEbRrfvydPzi8"
+manejador_eventos = "iJqdgFw4CQh2qVqZsn2taWmvWdEHVsdtohhqNAD8dYM"
 
 [registry]
 url = "https://api.devnet.solana.com"
