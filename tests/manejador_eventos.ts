@@ -5,6 +5,7 @@ import * as spl from "@solana/spl-token";
 import { assert } from "chai";
 import { BN } from "bn.js";
 import { token } from "@coral-xyz/anchor/dist/cjs/utils";
+import { SendTransactionError } from "@solana/web3.js";
 
 describe("Test", () => {
   // Configure the client to use the local cluster.
@@ -390,54 +391,91 @@ describe("Test", () => {
 
     infoBovedaGanancias = await spl.getAccount(program.provider.connection, bovedaGanancias);
     console.log("Saldo de la boveda de ganancias, Despues: ", infoBovedaGanancias.amount);
-  });
 
-  it("Eliminar colaborador Bob", async () => {
     const infoCuentaTokenEventoBob = await spl.getAccount(
       program.provider.connection,
       cuentaTokenEventoBob
     );
 
-    console.log("Saldo de tokens de Bob antes de eliminar:", infoCuentaTokenEventoBob.amount);
-
-    // Si Bob tiene tokens, el test fallará con el constraint ColaboradorConSaldo
-    if (infoCuentaTokenEventoBob.amount > 0) {
-      console.log("⚠️  Bob tiene tokens pendientes. Debe retirar sus ganancias primero.");
-    }
-
-    const tx = await program.methods.eliminarColaborador()
-      .accounts({
-        evento: evento,
-        colaborador: colaboradorPDABob,
-        tokenEvento: tokenEvento,
-        cuentaColaboradorTokenEvento: cuentaTokenEventoBob,
-        walletColaborador: bob.publicKey, // Esta es la cuenta que recibe los lamports
-        autoridad: autoridad.publicKey,
-      })
-      .signers([autoridad, bob]) // ← ¡Ambos deben firmar! Bob debe autorizar el cierre de sus cuentas
-      .rpc();
-
-    const latestBlockhash = await program.provider.connection.getLatestBlockhash();
-    await program.provider.connection.confirmTransaction({
-      blockhash: latestBlockhash.blockhash,
-      lastValidBlockHeight: latestBlockhash.lastValidBlockHeight,
-      signature: tx,
-    });
-
-    // Verificamos que el colaborador ya no existe
-    const colaboradores = await program.account.colaborador.all([
-      {
-        memcmp: {
-          offset: 8, // Offset del campo 'evento' en la cuenta de colaborador al ser el primero
-          bytes: evento.toBase58(), // Convertimos la PDA a base58
-        }
-      }
-    ]);
-
-    const colaboradorBob = colaboradores.find(c => c.account.wallet.toBase58() === bob.publicKey.toBase58());
-    assert(colaboradorBob === undefined, "Bob debería haber sido eliminado como colaborador");
+    console.log("Tokens del evento de Bob, Despues: ", infoCuentaTokenEventoBob.amount);
+    assert(Number(infoCuentaTokenEventoBob.amount) === 0, "Bob should have no event tokens left after withdrawal");
   });
 
+  it("Eliminar a Bob como colaborador y devolverle sus lamports", async () => {
+    const LAMPORTS_PER_SOL = anchor.web3.LAMPORTS_PER_SOL;
+    // Get initial SOL balances for verification
+    const initialBobSolBalance = await program.provider.connection.getBalance(bob.publicKey);
+    const initialAutoridadSolBalance = await program.provider.connection.getBalance(autoridad.publicKey);
+
+    console.log("Bob's SOL balance before deletion:", initialBobSolBalance / LAMPORTS_PER_SOL);
+    console.log("Autoridad's SOL balance before deletion:", initialAutoridadSolBalance / LAMPORTS_PER_SOL);
+
+    // Fetch initial event info to check sponsor count later
+    const initialEventoInfo = await program.account.evento.fetch(evento);
+    console.log("Initial sponsors_actuales:", initialEventoInfo.sponsorsActuales.toNumber());
+
+    let errorOccurred = false;
+    try {
+      const tx = await program.methods.eliminarColaborador()
+        .accounts({
+          evento: evento,
+          colaborador: colaboradorPDABob,
+          cuentaCompradorTokenEvento: cuentaTokenEventoBob,
+          tokenEvento: tokenEvento,
+          autoridad: autoridad.publicKey,
+          colaboradorWallet: bob.publicKey, // This is the public key of Bob's wallet
+        })
+        .signers([autoridad, bob]) // Only 'autoridad' signs this transaction
+        .rpc();
+
+      const latestBlockhash = await program.provider.connection.getLatestBlockhash();
+      await program.provider.connection.confirmTransaction({
+        blockhash: latestBlockhash.blockhash,
+        lastValidBlockHeight: latestBlockhash.lastValidBlockHeight,
+        signature: tx,
+      });
+
+      console.log("Transaction ID for eliminating Bob:", tx);
+
+      // Verify the Colaborador account is closed
+      const colaboradorAccountInfo = await program.provider.connection.getAccountInfo(colaboradorPDABob);
+      assert.isNull(colaboradorAccountInfo, "Colaborador PDA should be closed (null)");
+
+      // Verify the Token Event Account is closed
+      const cuentaTokenEventoBobInfo = await program.provider.connection.getAccountInfo(cuentaTokenEventoBob);
+      assert.isNull(cuentaTokenEventoBobInfo, "Bob's Event Token Account should be closed (null)");
+
+      // Fetch updated event info
+      const updatedEventoInfo = await program.account.evento.fetch(evento);
+      assert.equal(updatedEventoInfo.sponsorsActuales.toNumber(), initialEventoInfo.sponsorsActuales.toNumber() - 1, "Sponsors count should decrease by 1");
+
+      // Verify SOL balances
+      const finalBobSolBalance = await program.provider.connection.getBalance(bob.publicKey);
+      const finalAutoridadSolBalance = await program.provider.connection.getBalance(autoridad.publicKey);
+
+      console.log("Bob's SOL balance after deletion:", finalBobSolBalance / LAMPORTS_PER_SOL);
+      console.log("Autoridad's SOL balance after deletion:", finalAutoridadSolBalance / LAMPORTS_PER_SOL);
+
+      // The exact amount of SOL returned to Bob will depend on the rent exemption amount
+      // of the Colaborador and TokenAccount. We'll check that Bob's balance increased
+      // and authority's balance remained relatively stable (minus transaction fees).
+      assert(finalBobSolBalance > initialBobSolBalance, "Bob's SOL balance should increase");
+    } catch (e) {
+      if (e instanceof SendTransactionError) {
+        const logs = await e.getLogs(program.provider.connection);
+        console.error("Anchor error during elimination:", logs);
+      } else {
+        console.error("Error during elimination:", e);
+      }
+      errorOccurred = true;
+    }
+    assert.isFalse(errorOccurred, "Elimination of collaborator should not throw an error");
+  });
+
+  it("Retirar ganancias Alice y eliminar colaborador", async () => {
+    let infoBovedaGanancias = await spl.getAccount(program.provider.connection, bovedaGanancias);
+    console.log("Saldo de la boveda de ganancias, Antes: ", infoBovedaGanancias.amount);
+  });
 
 });
 

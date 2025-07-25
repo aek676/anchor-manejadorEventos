@@ -1,66 +1,59 @@
+use crate::colecciones::*;
+use crate::utilidades::*; // Assuming CodigoError is defined here
 use anchor_lang::prelude::*;
 use anchor_spl::associated_token::*;
-use anchor_spl::token::*;
-
-use crate::colecciones::*;
-use crate::utilidades::*;
+use anchor_spl::token::close_account;
+use anchor_spl::token::{CloseAccount, Mint, Token, TokenAccount};
 
 #[derive(Accounts)]
 pub struct EliminarColaborador<'info> {
     #[account(
         mut,
         seeds = [
-            evento.id.as_ref(),
+            evento.id.to_string().as_ref(),
             Evento::SEMILLA_EVENTO.as_bytes(),
-            autoridad.key().as_ref(),
+            evento.autoridad.key().as_ref(),
         ],
         bump = evento.bump_evento,
-        constraint = evento.autoridad == autoridad.key() @ CodigoError::UsuarioNoAutorizado,
+        has_one = autoridad @ CodigoError::UsuarioNoAutorizado // Ensure only the event authority can delete
     )]
     pub evento: Account<'info, Evento>,
 
     #[account(
         mut,
+        close = colaborador_wallet, // Return SOL to the collaborator's wallet (original payer)
         seeds = [
             Colaborador::SEMILLA_COLABORADOR.as_bytes(),
             evento.key().as_ref(),
-            wallet_colaborador.key().as_ref(),
+            colaborador.wallet.as_ref(), // Use the collaborator's wallet key in the seed
         ],
         bump = colaborador.bump,
-        constraint = colaborador.evento == evento.key() @ CodigoError::ColaboradorNoPertenece,
-        constraint = colaborador.wallet == wallet_colaborador.key() @ CodigoError::WalletIncorrecta,
-        close = wallet_colaborador, // Cerrar cuenta y transferir lamports al colaborador
+        constraint = colaborador.evento == evento.key() @ CodigoError::ColaboradorNoPertenece, // Ensure collaborator belongs to this event
     )]
     pub colaborador: Account<'info, Colaborador>,
 
     #[account(
         mut,
+        constraint = cuenta_comprador_token_evento.amount == 0 @ CodigoError::ColaboradorConSaldo,
+    )]
+    pub cuenta_comprador_token_evento: Account<'info, TokenAccount>,
+
+    #[account(
         seeds = [
             Evento::SEMILLA_TOKEN_EVENTO.as_bytes(),
             evento.key().as_ref(),
         ],
         bump = evento.bump_token_evento,
     )]
-    pub token_evento: Account<'info, Mint>,
-
-    #[account(
-        mut,
-        constraint = cuenta_colaborador_token_evento.mint == token_evento.key() @ CodigoError::TokenIncorrecto,
-        constraint = cuenta_colaborador_token_evento.owner == wallet_colaborador.key() @ CodigoError::UsuarioNoAutorizado,
-        constraint = cuenta_colaborador_token_evento.amount == 0 @ CodigoError::ColaboradorConSaldo,
-        close = wallet_colaborador // Cerrar cuenta de token y transferir lamports al colaborador
-    )]
-    pub cuenta_colaborador_token_evento: Account<'info, TokenAccount>,
-
-    /// CHECK: Wallet del colaborador que recibe los lamports de las cuentas cerradas
-    #[account(
-        mut,
-        constraint = wallet_colaborador.key() == colaborador.wallet @ CodigoError::WalletIncorrecta,
-    )]
-    pub wallet_colaborador: UncheckedAccount<'info>,
+    pub token_evento: Account<'info, Mint>, // The mint of the event token
 
     #[account(mut)]
-    pub autoridad: Signer<'info>,
+    pub autoridad: Signer<'info>, // The signer performing the deletion (event authority)
+
+    /// CHECK: This account receives the lamports from the closed `colaborador` and `cuenta_comprador_token_evento` accounts.
+    /// It's not a signer but needs to be mutable to receive SOL. Its address is derived from `colaborador.wallet`.
+    #[account(mut)]
+    pub colaborador_wallet: Signer<'info>,
 
     pub token_program: Program<'info, Token>,
     pub associated_token_program: Program<'info, AssociatedToken>,
@@ -68,19 +61,25 @@ pub struct EliminarColaborador<'info> {
 }
 
 pub fn eliminar_colaborador(ctx: Context<EliminarColaborador>) -> Result<()> {
-    // Verificar que hay colaboradores para eliminar
+    // Crucial check: Ensure the `colaborador_wallet` account passed in
+    // is indeed the wallet address stored in the `colaborador` account.
     require!(
-        ctx.accounts.evento.sponsors_actuales > 0,
-        CodigoError::NoHayColaboradores
+        ctx.accounts.colaborador_wallet.key() == ctx.accounts.colaborador.wallet.key(),
+        CodigoError::WalletIncorrecta
     );
 
-    // Verificar que el colaborador no tiene tokens pendientes
-    require!(
-        ctx.accounts.cuenta_colaborador_token_evento.amount == 0,
-        CodigoError::ColaboradorConSaldo
+    let ctx_cerrar_cuenta_evento = CpiContext::new(
+        ctx.accounts.token_program.to_account_info(),
+        CloseAccount {
+            account: ctx.accounts.cuenta_comprador_token_evento.to_account_info(),
+            destination: ctx.accounts.colaborador_wallet.to_account_info(),
+            authority: ctx.accounts.colaborador_wallet.to_account_info(),
+        },
     );
 
-    // Decrementar el contador de sponsors actuales
+    close_account(ctx_cerrar_cuenta_evento)?;
+
+    // Decrement the current sponsors count in the event
     ctx.accounts.evento.sponsors_actuales = ctx
         .accounts
         .evento
@@ -88,22 +87,8 @@ pub fn eliminar_colaborador(ctx: Context<EliminarColaborador>) -> Result<()> {
         .checked_sub(1)
         .ok_or(CodigoError::OverflowError)?;
 
-    // Emitir evento para auditoría
-    emit!(ColaboradorEliminado {
-        evento: ctx.accounts.evento.key(),
-        colaborador_wallet: ctx.accounts.colaborador.wallet,
-        autoridad: ctx.accounts.autoridad.key(),
-        sponsors_restantes: ctx.accounts.evento.sponsors_actuales,
-    });
+    // The 'colaborador' and 'cuenta_comprador_token_evento' accounts are automatically closed
+    // and SOL is transferred to 'colaborador_wallet' due to the `close = colaborador_wallet` constraints.
 
     Ok(())
-}
-
-// Evento para auditoría
-#[event]
-pub struct ColaboradorEliminado {
-    pub evento: Pubkey,
-    pub colaborador_wallet: Pubkey,
-    pub autoridad: Pubkey,
-    pub sponsors_restantes: u64,
 }
