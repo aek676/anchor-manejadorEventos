@@ -68,7 +68,17 @@ pub fn retirar_ganancias(ctx: Context<RetirarGanancias>) -> Result<()> {
     let porcentaje = calcular_porcentaje(total_token_vendidos, tokens_colaborador);
 
     // calculamos el total a transferir con el porcentaje anterior
-    let total_ganancias_colaborador = calcular_ganancia(total_boveda_ganancias, porcentaje);
+    let mut total_ganancias_colaborador = calcular_ganancia(total_boveda_ganancias, porcentaje);
+
+    let tokens_restantes_despues_burn = ctx.accounts.token_evento.supply - tokens_colaborador;
+
+    if tokens_restantes_despues_burn == 0 {
+        total_ganancias_colaborador = total_boveda_ganancias;
+        msg!(
+            "Último colaborador retirando. Recibe todo el resto: {}",
+            total_ganancias_colaborador
+        );
+    }
 
     let ctx_quemar = CpiContext::new(
         ctx.accounts.token_program.to_account_info(),

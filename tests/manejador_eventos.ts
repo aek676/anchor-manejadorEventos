@@ -151,7 +151,7 @@ describe("Test", () => {
 
   it("Crear un evento", async () => {
     // Datos basicos del evento
-    const nombre = "Mi primer evento";
+    const nombre = `Evento de prueba ${id}`;
     const descripcion = "El mejor evento del mundo!";
     const precioEntrada = 2.1;
     const precioToken = 5.0;
@@ -582,6 +582,35 @@ describe("Test", () => {
     assert.isFalse(errorOccurred, "Elimination of collaborator should not throw an error");
   });
 
+  it("Eliminar fondos de boveda de evento", async () => {
+    let infoBovedaEvento = await spl.getAccount(program.provider.connection, bovedaEvento);
+    console.log("Saldo de la boveda de evento, Antes: ", infoBovedaEvento.amount);
+
+    const mintInfo = await spl.getMint(program.provider.connection, tokenAceptado);
+    const cantidad = new BN(Number(infoBovedaEvento.amount) / (10 ** mintInfo.decimals));
+
+    const tx = await program.methods.retirarFondos(cantidad)
+      .accounts({
+        evento: evento,
+        cuentaAutoridadTokenAceptado: cuentaAutoridadTokenAceptado,
+        bovedaEvento: bovedaEvento,
+        tokenAceptado: tokenAceptado,
+        autoridad: autoridad.publicKey,
+      })
+      .rpc();
+
+    const latestBlockhash = await program.provider.connection.getLatestBlockhash();
+    await program.provider.connection.confirmTransaction({
+      blockhash: latestBlockhash.blockhash,
+      lastValidBlockHeight: latestBlockhash.lastValidBlockHeight,
+      signature: tx,
+    });
+
+    infoBovedaEvento = await spl.getAccount(program.provider.connection, bovedaEvento);
+    console.log("Saldo de la boveda del evento, Despues: ", infoBovedaEvento.amount);
+    assert.equal(Number(infoBovedaEvento.amount), 0, "La boveda del evento deberia estar vacia");
+  });
+
   it("Eliminar evento", async () => {
     let error: anchor.AnchorError;
     // Llamamos a la instruccion del programa para eliminar el evento
@@ -599,12 +628,12 @@ describe("Test", () => {
         error = e;
       });
 
-    assert.equal(error.error.errorCode.code, "EventoConSponsors");
+    assert.isUndefined(error, "No deberia haber error al eliminar el evento" + (error ? error.error.errorCode.code : ""));
 
-    const infoEvento = await program.account.evento.fetch(evento);
+    const infoEvento = await program.account.evento.fetchNullable(evento);
 
     // El evento no deberia tener sponsors
-    assert.equal(0, infoEvento.sponsorsActuales.toNumber(), "El evento no deberia tener sponsors");
+    assert.isNull(infoEvento, "La cuenta del evento debe estar eliminada");
   });
 
 });
