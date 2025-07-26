@@ -423,10 +423,9 @@ describe("Test", () => {
     let errorOccurred = false;
     try {
       const tx = await program.methods.eliminarColaborador()
-        .accounts({
+        .accountsPartial({
           evento: evento,
           colaborador: colaboradorPDABob,
-          cuentaCompradorTokenEvento: cuentaTokenEventoBob,
           tokenEvento: tokenEvento,
           autoridad: autoridad.publicKey,
           colaboradorWallet: bob.publicKey, // This is the public key of Bob's wallet

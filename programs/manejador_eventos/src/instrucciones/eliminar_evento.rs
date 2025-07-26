@@ -15,7 +15,7 @@ pub struct EliminarEvento<'info> {
             autoridad.key().as_ref(),
         ],
         bump = evento.bump_evento,
-        constraint = evento.total_sponsors == 0 @ CodigoError::EventoConSponsors,
+        constraint = evento.sponsors_actuales == 0 @ CodigoError::EventoConSponsors,
         constraint = evento.autoridad == autoridad.key() @ CodigoError::UsuarioNoAutorizado,
         close = autoridad
     )]

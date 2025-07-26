@@ -18,6 +18,11 @@ export interface EventoInfo {
     tokenAceptado: PublicKey;
 }
 
+export interface ColaboradorInfo {
+    wallet: PublicKey;
+    evento: PublicKey;
+}
+
 export class ManejadorEventosClient {
     constructor(
         private program: Program<ManejadorEventos>,
@@ -25,7 +30,7 @@ export class ManejadorEventosClient {
     ) { }
 
     // Encontrar las PDAs del evento
-    findEventoPDAs(id: string, autoridad: PublicKey) {
+    findEventoPDAs(id: string, autoridad: PublicKey, colaborador?: PublicKey) {
         // Evento PDA: [id, "evento", autoridad]
         const [evento] = PublicKey.findProgramAddressSync(
             [Buffer.from(id), Buffer.from('evento'), autoridad.toBuffer()],
@@ -50,11 +55,20 @@ export class ManejadorEventosClient {
             this.program.programId
         );
 
+        let colaboradorPDA: PublicKey | undefined;
+        if (colaborador) {
+            [colaboradorPDA] = PublicKey.findProgramAddressSync(
+                [Buffer.from("colaborador"), evento.toBuffer(), colaborador.toBuffer()],
+                this.program.programId
+            );
+        }
+
         return {
             evento,
             tokenEvento,
             bovedaEvento,
             bovedaGanancias,
+            colaboradorPDA,
         };
     }
 
@@ -220,8 +234,8 @@ export class ManejadorEventosClient {
             }
 
             // Verificar sponsors
-            if (eventoAccount.totalSponsors.toNumber() > 0) {
-                razones.push(`El evento tiene ${eventoAccount.totalSponsors.toNumber()} sponsor(s)`);
+            if (eventoAccount.sponsorsActuales.toNumber() > 0) {
+                razones.push(`El evento tiene ${eventoAccount.sponsorsActuales.toNumber()} sponsor(s)`);
             }
 
             // Verificar bóvedas
@@ -352,6 +366,47 @@ export class ManejadorEventosClient {
             }
         }
         return eventosInfo;
+    }
+
+    async getColaboradoresPorEvento(eventoId: string, autoridad: PublicKey): Promise<ColaboradorInfo[]> {
+        const pdas = this.findEventoPDAs(eventoId, autoridad);
+        // La cuenta Colaborador tiene: discriminante (8) + evento (32) + wallet (32)
+        // El campo evento empieza en offset 8
+        const colaboradoresAccounts = await this.program.account.colaborador.all([
+            {
+                memcmp: {
+                    offset: 8,
+                    bytes: pdas.evento.toBase58(),
+                }
+            }
+        ]);
+        return colaboradoresAccounts.map(c => ({
+            wallet: c.account.wallet,
+            evento: c.account.evento,
+        }));
+    }
+
+    async eliminarColaborador(eventoId: string, autoridad: PublicKey, colaborador: PublicKey) {
+        const pdas = this.findEventoPDAs(eventoId, autoridad, colaborador);
+
+        // Verificar si la cuenta de token evento del colaborador existe
+        const cuentaTokenEventoColaborador = await this.getAssociatedTokenAddress(pdas.tokenEvento, colaborador);
+        const cuentaInfo = await this.connection.getAccountInfo(cuentaTokenEventoColaborador);
+        if (cuentaInfo) {
+            throw new Error('No se puede eliminar el colaborador porque aún existe la cuenta de token evento asociada. Retira los tokens primero.');
+        }
+
+        const tx = await this.program.methods.eliminarColaborador()
+            .accountsPartial({
+                evento: pdas.evento,
+                colaborador: pdas.colaboradorPDA,
+                tokenEvento: pdas.tokenEvento,
+                autoridad: autoridad,
+                colaboradorWallet: colaborador,
+            })
+            .rpc();
+
+        return tx;
     }
 
     // Obtener dirección de cuenta de token asociada

@@ -72,79 +72,9 @@ export function ListaEventos() {
         }
     };
 
-    const finalizarEvento = async (evento: EventoInfo) => {
-        if (!program || !publicKey) return;
 
-        try {
-            const client = new ManejadorEventosClient(program, provider!.connection);
-            await client.finalizarEvento(evento.id, publicKey);
 
-            // Refrescar la lista según la vista actual
-            if (vistaActual === 'todos') {
-                await cargarTodosLosEventos();
-            } else {
-                await buscarEvento();
-            }
-        } catch (error) {
-            console.error('Error al finalizar evento:', error);
-        }
-    };
 
-    const eliminarEvento = async (evento: EventoInfo) => {
-        if (!program || !publicKey) return;
-
-        try {
-            const client = new ManejadorEventosClient(program, provider!.connection);
-
-            // Verificar condiciones primero
-            const verificacion = await client.verificarCondicionesEliminacion(evento.id, publicKey);
-
-            if (!verificacion.puedeEliminar) {
-                const razones = verificacion.razones.join('\n- ');
-                alert(`No se puede eliminar el evento "${evento.nombre}":\n\n- ${razones}`);
-                return;
-            }
-
-            // Confirmar eliminación
-            const confirmar = window.confirm(
-                `¿Estás seguro de que quieres eliminar el evento "${evento.nombre}"?\n\n` +
-                'Esta acción no se puede deshacer.'
-            );
-
-            if (!confirmar) return;
-
-            await client.eliminarEvento(evento.id, publicKey);
-
-            alert(`Evento "${evento.nombre}" eliminado exitosamente.`);
-
-            // Refrescar la lista según la vista actual
-            if (vistaActual === 'todos') {
-                await cargarTodosLosEventos();
-            } else {
-                await buscarEvento();
-            }
-        } catch (error: unknown) {
-            console.error('Error al eliminar evento:', error);
-
-            let errorMessage = 'Error desconocido al eliminar el evento.';
-
-            if (error instanceof Error && error.message) {
-                if (error.message.includes('EventoConSponsors')) {
-                    errorMessage = 'No se puede eliminar: El evento aún tiene sponsors.';
-                } else if (error.message.includes('BovedaDelEventoNoVacia')) {
-                    errorMessage = 'No se puede eliminar: La bóveda del evento no está vacía.';
-                } else if (error.message.includes('BovedaDeGananciasNoVacia')) {
-                    errorMessage = 'No se puede eliminar: La bóveda de ganancias no está vacía.';
-                } else if (error.message.includes('UsuarioNoAutorizado')) {
-                    errorMessage = 'No tienes autorización para eliminar este evento.';
-                } else {
-                    errorMessage = `Error: ${error.message}`;
-                }
-            }
-
-            alert(errorMessage);
-        }
-    };
 
     // Función para manejar el toggle de las pestañas por evento
     const handleTabToggle = (eventoId: string, tab: Tab) => {
@@ -285,48 +215,28 @@ export function ListaEventos() {
 
                             {publicKey && evento.autoridad.equals(publicKey) && (
                                 <div className="mt-4 pt-4 border-t border-white/10">
-                                    {evento.activo ? (
-                                        <div className='flex justify-between items-center'>
+                                    <div className='flex justify-between items-center'>
+                                        <div className='flex space-x-2'>
                                             <button
-                                                onClick={() => finalizarEvento(evento)}
-                                                className="bg-red-600 hover:bg-red-700 text-white font-medium py-2 px-4 rounded-md transition-colors"
+                                                onClick={() => handleTabToggle(evento.id, 'tokens')}
+                                                className={`font-medium py-2 px-4 rounded-md transition-colors ${activeTabs[evento.id] === 'tokens'
+                                                    ? 'bg-blue-800 text-white'
+                                                    : 'bg-blue-600 hover:bg-blue-700 text-white'
+                                                    }`}
                                             >
-                                                Finalizar Evento
+                                                {activeTabs[evento.id] === 'tokens' ? 'Cerrar Tokens' : 'Comprar Tokens'}
                                             </button>
-                                            <div className='flex space-x-2'>
-                                                <button
-                                                    onClick={() => handleTabToggle(evento.id, 'tokens')}
-                                                    className={`font-medium py-2 px-4 rounded-md transition-colors ${activeTabs[evento.id] === 'tokens'
-                                                        ? 'bg-blue-800 text-white'
-                                                        : 'bg-blue-600 hover:bg-blue-700 text-white'
-                                                        }`}
-                                                >
-                                                    {activeTabs[evento.id] === 'tokens' ? 'Cerrar Tokens' : 'Comprar Tokens'}
-                                                </button>
-                                                <button
-                                                    onClick={() => handleTabToggle(evento.id, 'entradas')}
-                                                    className={`font-medium py-2 px-4 rounded-md transition-colors ${activeTabs[evento.id] === 'entradas'
-                                                        ? 'bg-green-800 text-white'
-                                                        : 'bg-green-600 hover:bg-green-700 text-white'
-                                                        }`}
-                                                >
-                                                    {activeTabs[evento.id] === 'entradas' ? 'Cerrar Entradas' : 'Comprar Entradas'}
-                                                </button>
-                                            </div>
-                                        </div>
-                                    ) : (
-                                        <div className="space-x-2">
-                                            <span className="text-blue-200 text-sm">
-                                                Evento finalizado - Puedes eliminarlo si no tiene sponsors y las bóvedas están vacías
-                                            </span>
                                             <button
-                                                onClick={() => eliminarEvento(evento)}
-                                                className="bg-red-800 hover:bg-red-900 text-white font-medium py-2 px-4 rounded-md transition-colors"
+                                                onClick={() => handleTabToggle(evento.id, 'entradas')}
+                                                className={`font-medium py-2 px-4 rounded-md transition-colors ${activeTabs[evento.id] === 'entradas'
+                                                    ? 'bg-green-800 text-white'
+                                                    : 'bg-green-600 hover:bg-green-700 text-white'
+                                                    }`}
                                             >
-                                                🗑️ Eliminar Evento
+                                                {activeTabs[evento.id] === 'entradas' ? 'Cerrar Entradas' : 'Comprar Entradas'}
                                             </button>
                                         </div>
-                                    )}
+                                    </div>
 
                                     {/* Contenido de las pestañas con animación */}
                                     {activeTabs[evento.id] && activeTabs[evento.id] !== '' && (

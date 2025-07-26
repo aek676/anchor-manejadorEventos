@@ -1,7 +1,6 @@
 use crate::colecciones::*;
 use crate::utilidades::*; // Assuming CodigoError is defined here
 use anchor_lang::prelude::*;
-use anchor_spl::associated_token::*;
 use anchor_spl::token::{Mint, Token};
 
 #[derive(Accounts)]
