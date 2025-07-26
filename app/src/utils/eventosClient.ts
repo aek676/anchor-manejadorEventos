@@ -261,13 +261,13 @@ export class ManejadorEventosClient {
         try {
             const pdas = this.findEventoPDAs(eventoId, autoridad);
             const eventoAccount = await this.program.account.evento.fetch(pdas.evento);
-
+            const decimals = await this.getMintDecimals(eventoAccount.tokenAceptado);
             return {
                 id: eventoAccount.id,
                 nombre: eventoAccount.nombre,
                 descripcion: eventoAccount.descripcion,
-                precioEntrada: eventoAccount.precioEntrada.toNumber() / 100, // Convertir de centavos
-                precioToken: eventoAccount.precioToken.toNumber() / 100,
+                precioEntrada: eventoAccount.precioEntrada.toNumber() / Math.pow(10, decimals),
+                precioToken: eventoAccount.precioToken.toNumber() / Math.pow(10, decimals),
                 entradasVendidas: eventoAccount.entradasVendidas.toNumber(),
                 totalSponsors: eventoAccount.totalSponsors.toNumber(),
                 sponsorsActuales: eventoAccount.sponsorsActuales.toNumber(),
@@ -292,13 +292,13 @@ export class ManejadorEventosClient {
             const eventosAccounts = await this.program.account.evento.all();
 
             const eventosInfo = await Promise.all(eventosAccounts.map(async eventoAccount => {
-                const mintInfo = await spl.getMint(this.connection, eventoAccount.account.tokenAceptado);
+                const decimals = await this.getMintDecimals(eventoAccount.account.tokenAceptado);
                 return {
                     id: eventoAccount.account.id,
                     nombre: eventoAccount.account.nombre,
                     descripcion: eventoAccount.account.descripcion,
-                    precioEntrada: eventoAccount.account.precioEntrada.toNumber() / Math.pow(10, mintInfo.decimals),
-                    precioToken: eventoAccount.account.precioToken.toNumber() / Math.pow(10, mintInfo.decimals),
+                    precioEntrada: eventoAccount.account.precioEntrada.toNumber() / Math.pow(10, decimals),
+                    precioToken: eventoAccount.account.precioToken.toNumber() / Math.pow(10, decimals),
                     entradasVendidas: eventoAccount.account.entradasVendidas.toNumber(),
                     totalSponsors: eventoAccount.account.totalSponsors.toNumber(),
                     sponsorsActuales: eventoAccount.account.sponsorsActuales.toNumber(),
@@ -333,13 +333,13 @@ export class ManejadorEventosClient {
         for (const eventoPubkey of eventoPubkeys) {
             try {
                 const eventoAccount = await this.program.account.evento.fetch(eventoPubkey);
-                const mintInfo = await spl.getMint(this.connection, eventoAccount.tokenAceptado);
+                const decimals = await this.getMintDecimals(eventoAccount.tokenAceptado);
                 eventosInfo.push({
                     id: eventoAccount.id,
                     nombre: eventoAccount.nombre,
                     descripcion: eventoAccount.descripcion,
-                    precioEntrada: eventoAccount.precioEntrada.toNumber() / Math.pow(10, mintInfo.decimals),
-                    precioToken: eventoAccount.precioToken.toNumber() / Math.pow(10, mintInfo.decimals),
+                    precioEntrada: eventoAccount.precioEntrada.toNumber() / Math.pow(10, decimals),
+                    precioToken: eventoAccount.precioToken.toNumber() / Math.pow(10, decimals),
                     entradasVendidas: eventoAccount.entradasVendidas.toNumber(),
                     totalSponsors: eventoAccount.totalSponsors.toNumber(),
                     sponsorsActuales: eventoAccount.sponsorsActuales.toNumber(),
@@ -360,6 +360,11 @@ export class ManejadorEventosClient {
         owner: PublicKey
     ) {
         return await spl.getAssociatedTokenAddress(tokenMint, owner);
+    }
+
+    async getMintDecimals(tokenMint: PublicKey) {
+        const mintInfo = await spl.getMint(this.connection, tokenMint);
+        return mintInfo.decimals;
     }
 
 }
