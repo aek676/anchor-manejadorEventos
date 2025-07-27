@@ -5,7 +5,7 @@
  * IDL can be found at `target/idl/manejador_eventos.json`.
  */
 export type ManejadorEventos = {
-  "address": "iJqdgFw4CQh2qVqZsn2taWmvWdEHVsdtohhqNAD8dYM",
+  "address": "6eqYCo2A64a3jicQavc87vtw7jmgmy11C4EEWrAAM5Cn",
   "metadata": {
     "name": "manejadorEventos",
     "version": "0.1.0",
@@ -538,6 +538,12 @@ export type ManejadorEventos = {
         {
           "name": "precioToken",
           "type": "f64"
+        },
+        {
+          "name": "uriImg",
+          "type": {
+            "option": "string"
+          }
         }
       ]
     },
@@ -1330,6 +1336,10 @@ export type ManejadorEventos = {
           },
           {
             "name": "descripcion",
+            "type": "string"
+          },
+          {
+            "name": "uriImg",
             "type": "string"
           },
           {

@@ -75,6 +75,7 @@ pub fn crear_evento(
     id: String,
     nombre: String,
     descripcion: String,
+    uri_img: Option<String>,
     precio_entrada: f64,
     precio_token: f64,
 ) -> Result<()> {
@@ -82,6 +83,12 @@ pub fn crear_evento(
     ctx.accounts.evento.id = id;
     ctx.accounts.evento.nombre = nombre;
     ctx.accounts.evento.descripcion = descripcion;
+
+    if let Some(uri_img) = uri_img {
+        ctx.accounts.evento.uri_img = uri_img;
+    } else {
+        ctx.accounts.evento.uri_img = Evento::URI_IMG_DEFAULT.to_string();
+    }
 
     // precios
     let factor_decimales = 10_f64.powf(ctx.accounts.token_aceptado.decimals as f64);

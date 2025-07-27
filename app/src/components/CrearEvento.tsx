@@ -5,6 +5,7 @@ import { useWallet } from '@solana/wallet-adapter-react';
 import { useProgram } from '@/hooks/useProgram';
 import { ManejadorEventosClient } from '@/utils/eventosClient';
 import { PublicKey } from '@solana/web3.js';
+import { uploadImage, UploadImageResult } from '@/utils/uploadImage';
 
 export function CrearEvento() {
     const { publicKey } = useWallet();
@@ -20,6 +21,9 @@ export function CrearEvento() {
     const [loading, setLoading] = useState(false);
     const [success, setSuccess] = useState(false);
     const [error, setError] = useState('');
+
+    const [uploading, setUploading] = useState(false);
+    const [result, setResult] = useState<UploadImageResult | null>(null);
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -47,17 +51,18 @@ export function CrearEvento() {
             const eventoId = Date.now().toString();
 
 
-            const result = await client.crearEvento(
+            const eventoResult = await client.crearEvento(
                 eventoId,
                 formData.nombre,
                 formData.descripcion,
                 Number(formData.precioEntrada), // Enviar como número decimal directo
                 Number(formData.precioToken),   // Enviar como número decimal directo
                 tokenAceptado,
-                publicKey
+                publicKey,
+                result ? result.uri : '' // Usar URI de la imagen si se subió
             );
 
-            console.log('Evento creado exitosamente:', result);
+            console.log('Evento creado exitosamente:', eventoResult);
 
             setSuccess(true);
             setFormData({
@@ -80,6 +85,26 @@ export function CrearEvento() {
             ...formData,
             [e.target.name]: e.target.value,
         });
+    };
+
+    const handleFileUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+        const file = event.target.files?.[0];
+
+        if (!file) {
+            alert("Please select a file to upload.");
+            return;
+        }
+
+        setUploading(true);
+
+        try {
+            const uploadResult = await uploadImage(file);
+            setResult(uploadResult);
+            console.log("File uploaded successfully:", uploadResult);
+
+        } catch (error) {
+            console.error("Error uploading file:", error);
+        }
     };
 
     return (
@@ -160,6 +185,22 @@ export function CrearEvento() {
                         <p className="text-xs text-blue-300 mt-1">
                             Precio en USDC (ej: 5.00 = 5.00 USDC)
                         </p>
+                    </div>
+                    <div>
+                        <label htmlFor="imagen" className="block text-sm font-medium text-blue-200 mb-2">
+                            Imagen del Evento
+                        </label>
+                        <div>
+                            <input type="file" onChange={handleFileUpload} disabled={uploading} />
+                            {uploading && <p>Uploading...</p>}
+                            {result && (
+                                <div>
+                                    <p>Upload successfully</p>
+                                    <p>Uri: {result.uri}</p>
+
+                                </div>
+                            )}
+                        </div>
                     </div>
                 </div>
 

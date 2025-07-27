@@ -1,5 +1,5 @@
 {
-  "address": "iJqdgFw4CQh2qVqZsn2taWmvWdEHVsdtohhqNAD8dYM",
+  "address": "6eqYCo2A64a3jicQavc87vtw7jmgmy11C4EEWrAAM5Cn",
   "metadata": {
     "name": "manejador_eventos",
     "version": "0.1.0",
@@ -532,6 +532,12 @@
         {
           "name": "precio_token",
           "type": "f64"
+        },
+        {
+          "name": "uri_img",
+          "type": {
+            "option": "string"
+          }
         }
       ]
     },
@@ -1324,6 +1330,10 @@
           },
           {
             "name": "descripcion",
+            "type": "string"
+          },
+          {
+            "name": "uri_img",
             "type": "string"
           },
           {

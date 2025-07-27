@@ -8,6 +8,7 @@ export interface EventoInfo {
     id: string;
     nombre: string;
     descripcion: string;
+    uriImg?: string;
     precioEntrada: number;
     precioToken: number;
     entradasVendidas: number;
@@ -80,12 +81,13 @@ export class ManejadorEventosClient {
         precioEntrada: number,
         precioToken: number,
         tokenAceptado: PublicKey,
-        autoridad: PublicKey
+        autoridad: PublicKey,
+        uri: string
     ) {
         const pdas = this.findEventoPDAs(id, autoridad);
 
         const tx = await this.program.methods
-            .crearEvento(id, nombre, descripcion, precioEntrada, precioToken)
+            .crearEvento(id, nombre, descripcion, precioEntrada, precioToken, uri)
             .accountsPartial({
                 evento: pdas.evento,
                 tokenAceptado,
@@ -280,6 +282,7 @@ export class ManejadorEventosClient {
                 id: eventoAccount.id,
                 nombre: eventoAccount.nombre,
                 descripcion: eventoAccount.descripcion,
+                uriImg: eventoAccount.uriImg,
                 precioEntrada: eventoAccount.precioEntrada.toNumber() / Math.pow(10, decimals),
                 precioToken: eventoAccount.precioToken.toNumber() / Math.pow(10, decimals),
                 entradasVendidas: eventoAccount.entradasVendidas.toNumber(),
@@ -311,6 +314,7 @@ export class ManejadorEventosClient {
                     id: eventoAccount.account.id,
                     nombre: eventoAccount.account.nombre,
                     descripcion: eventoAccount.account.descripcion,
+                    uriImg: eventoAccount.account.uriImg,
                     precioEntrada: eventoAccount.account.precioEntrada.toNumber() / Math.pow(10, decimals),
                     precioToken: eventoAccount.account.precioToken.toNumber() / Math.pow(10, decimals),
                     entradasVendidas: eventoAccount.account.entradasVendidas.toNumber(),
@@ -352,6 +356,7 @@ export class ManejadorEventosClient {
                     id: eventoAccount.id,
                     nombre: eventoAccount.nombre,
                     descripcion: eventoAccount.descripcion,
+                    uriImg: eventoAccount.uriImg,
                     precioEntrada: eventoAccount.precioEntrada.toNumber() / Math.pow(10, decimals),
                     precioToken: eventoAccount.precioToken.toNumber() / Math.pow(10, decimals),
                     entradasVendidas: eventoAccount.entradasVendidas.toNumber(),

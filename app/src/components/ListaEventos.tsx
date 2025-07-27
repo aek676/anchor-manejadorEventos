@@ -6,6 +6,7 @@ import { useProgram } from '@/hooks/useProgram';
 import { ManejadorEventosClient, EventoInfo } from '@/utils/eventosClient';
 import { ComprarTokens } from './ComprarTokens';
 import { ComprarEntradas } from './ComprarEntradas';
+import { URL_IRYS_DEVNET } from '@/utils/uploadImage';
 
 type Tab = 'tokens' | 'entradas' | '';
 
@@ -71,10 +72,6 @@ export function ListaEventos() {
             setLoading(false);
         }
     };
-
-
-
-
 
     // Función para manejar el toggle de las pestañas por evento
     const handleTabToggle = (eventoId: string, tab: Tab) => {
@@ -175,6 +172,14 @@ export function ListaEventos() {
                 {eventos.length > 0 ? (
                     eventos.map((evento, index) => (
                         <div key={index} className="bg-white/5 rounded-lg p-6 border border-white/10">
+                            {/* Imagen del evento */}
+                            <div className="mb-4 flex justify-center">
+                                <img
+                                    src={URL_IRYS_DEVNET + evento.uriImg}
+                                    alt={`Imagen de ${evento.nombre}`}
+                                    className="rounded-lg w-full max-w-xs h-40 object-cover border border-white/20"
+                                />
+                            </div>
                             <div className="flex justify-between items-start mb-4">
                                 <div>
                                     <h3 className="text-xl font-bold text-white mb-2">{evento.nombre}</h3>

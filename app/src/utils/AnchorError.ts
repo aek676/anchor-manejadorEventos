@@ -32,5 +32,4 @@ function getMensajeErrorAnchor(errorCode: CodigoError): string {
     }
 }
 
-export { CodigoError, isAnchorError, getMensajeErrorAnchor };
-export type { AnchorError };
+export { CodigoError, getMensajeErrorAnchor };

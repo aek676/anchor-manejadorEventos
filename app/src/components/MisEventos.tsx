@@ -5,6 +5,7 @@ import { useWallet } from '@solana/wallet-adapter-react';
 import { useProgram } from '@/hooks/useProgram';
 import { ManejadorEventosClient, EventoInfo, ColaboradorInfo } from '@/utils/eventosClient';
 import { PublicKey } from '@solana/web3.js';
+import { URL_IRYS_DEVNET } from '@/utils/uploadImage';
 
 export function MisEventos() {
     const { publicKey } = useWallet();
@@ -173,6 +174,14 @@ export function MisEventos() {
                 <div className="space-y-6">
                     {eventos.map(evento => (
                         <div key={evento.id} className="bg-white/10 rounded-lg p-6 shadow-md border border-white/20">
+                            {/* Imagen del evento */}
+                            <div className="mb-4 flex justify-center">
+                                <img
+                                    src={URL_IRYS_DEVNET + evento.uriImg}
+                                    alt={`Imagen de ${evento.nombre}`}
+                                    className="rounded-lg w-full max-w-xs h-40 object-cover border border-white/20"
+                                />
+                            </div>
                             <h3 className="text-xl font-semibold text-white mb-2">{evento.nombre}</h3>
                             <p className="text-blue-200 mb-2">{evento.descripcion}</p>
                             <div className="text-xs text-blue-300 space-y-1 mb-2">

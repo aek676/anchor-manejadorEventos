@@ -157,7 +157,7 @@ describe("Test", () => {
     const precioToken = 5.0;
 
     // Llamamos a la instruccion del programa
-    const tx = await program.methods.crearEvento(id, nombre, descripcion, precioEntrada, precioToken)
+    const tx = await program.methods.crearEvento(id, nombre, descripcion, precioEntrada, precioToken, null)
       .accounts({
         evento: evento,
         tokenAceptado: tokenAceptado,

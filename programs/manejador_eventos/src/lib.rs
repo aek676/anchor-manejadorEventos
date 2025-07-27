@@ -6,7 +6,7 @@ mod colecciones;
 mod instrucciones;
 mod utilidades;
 
-declare_id!("iJqdgFw4CQh2qVqZsn2taWmvWdEHVsdtohhqNAD8dYM");
+declare_id!("6eqYCo2A64a3jicQavc87vtw7jmgmy11C4EEWrAAM5Cn");
 
 #[program]
 pub mod manejador_eventos {
@@ -19,8 +19,17 @@ pub mod manejador_eventos {
         descripcion: String,
         precio_entrada: f64,
         precio_token: f64,
+        uri_img: Option<String>,
     ) -> Result<()> {
-        instrucciones::crear_evento(ctx, id, nombre, descripcion, precio_entrada, precio_token)
+        instrucciones::crear_evento(
+            ctx,
+            id,
+            nombre,
+            descripcion,
+            uri_img,
+            precio_entrada,
+            precio_token,
+        )
     }
 
     pub fn eliminar_evento(ctx: Context<EliminarEvento>) -> Result<()> {

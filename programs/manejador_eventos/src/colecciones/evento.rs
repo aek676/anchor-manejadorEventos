@@ -12,6 +12,9 @@ pub struct Evento {
     #[max_len(150)]
     pub descripcion: String,
 
+    #[max_len(64)]
+    pub uri_img: String,
+
     pub precio_entrada: u64,
     pub precio_token: u64,
 
@@ -37,4 +40,5 @@ impl Evento {
     pub const SEMILLA_TOKEN_EVENTO: &'static str = "token_evento"; // Semilla para la PDA del token del evento
     pub const SEMILLA_BOVEDA_GANANCIAS: &'static str = "boveda_ganancias"; // Semilla para la PDA de la boveda de ganancias
     pub const SEMILLA_BOVEDA_EVENTO: &'static str = "boveda_evento"; // Semilla para la PDA de la boveda del evento
+    pub const URI_IMG_DEFAULT: &'static str = "2VyjsUoKShaGovkx77z51avJYgLxNwinTTMD7HEqFy2X";
 }
