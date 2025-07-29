@@ -7,7 +7,7 @@ import { ManejadorEventosClient } from '@/utils/eventosClient';
 import { PublicKey } from '@solana/web3.js';
 import * as spl from '@solana/spl-token';
 
-export function ComprarEntradas({ eventoId, autoridadEvento }: { eventoId: string; autoridadEvento: PublicKey }) {
+export function ComprarEntradas({ eventoId, autoridadEvento, onCompraRealizada }: { eventoId: string; autoridadEvento: PublicKey; onCompraRealizada?: () => void | Promise<void> }) {
     const { publicKey } = useWallet();
     const { program, provider } = useProgram();
 
@@ -74,6 +74,7 @@ export function ComprarEntradas({ eventoId, autoridadEvento }: { eventoId: strin
             setFormData({
                 cantidad: '',
             });
+            if (onCompraRealizada) await onCompraRealizada();
 
         } catch (err) {
             console.error('Error al comprar entradas:', err);

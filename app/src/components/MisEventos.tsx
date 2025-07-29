@@ -86,7 +86,9 @@ export function MisEventos() {
 
             await client.retirarFondos(evento.id, evento.autoridad, saldos[evento.id] || 0, evento.tokenAceptado, cuentaTokenAceptadoAutoridad);
             setSaldos(prev => ({ ...prev, [evento.id]: 0 }));
-
+            // Actualizar colaboradores y eventos tras retirar fondos
+            await cargarColaboradoresEvento(evento.id);
+            await cargarEventos();
         } catch (error) {
             console.error('Error al retirar fondos:', error);
         }
@@ -98,7 +100,11 @@ export function MisEventos() {
         try {
             const client = new ManejadorEventosClient(program, provider!.connection);
             await client.finalizarEvento(evento.id, publicKey);
-            await cargarEventos();
+            // Esperar a que se actualicen colaboradores y eventos antes de continuar
+            await Promise.all([
+                cargarColaboradoresEvento(evento.id),
+                cargarEventos()
+            ]);
         } catch (error) {
             console.error('Error al finalizar evento:', error);
         }
@@ -126,6 +132,7 @@ export function MisEventos() {
 
             await client.eliminarEvento(evento.id, publicKey);
             alert(`Evento "${evento.nombre}" eliminado exitosamente.`);
+            // Actualizar eventos tras eliminar
             await cargarEventos();
         } catch (error: unknown) {
             console.error('Error al eliminar evento:', error);
@@ -150,13 +157,34 @@ export function MisEventos() {
         }
     };
 
-    // Nueva función para eliminar colaborador
+    // Nueva función para eliminar colaborador con validaciones
     const eliminarColaborador = async (eventoId: string, colaborador: PublicKey) => {
         if (!program || !publicKey) return;
 
         try {
             const client = new ManejadorEventosClient(program, provider!.connection);
+            // Buscar el evento actual
+            const evento = eventos.find(e => e.id === eventoId);
+            if (!evento) {
+                alert('No se encontró el evento.');
+                return;
+            }
+            if (evento.activo) {
+                alert('Solo puedes eliminar colaboradores de eventos finalizados.');
+                return;
+            }
+            // Consultar saldo de ganancias del colaborador
+            const pdas = client.findEventoPDAs(eventoId, publicKey);
+            // Usar la bóveda de ganancias asociada al colaborador
+            const balanceInfo = await provider!.connection.getTokenAccountBalance(pdas.bovedaGanancias);
+            const saldoGanancias = balanceInfo.value.uiAmount || 0;
+            if (saldoGanancias > 0) {
+                alert('El colaborador debe retirar todas sus ganancias antes de ser eliminado.');
+                return;
+            }
             await client.eliminarColaborador(eventoId, publicKey, colaborador);
+            // Actualizar colaboradores y eventos tras eliminar colaborador
+            await cargarColaboradoresEvento(eventoId);
             await cargarEventos();
         } catch (error) {
             console.error('Error al eliminar colaborador:', error);
@@ -180,6 +208,7 @@ export function MisEventos() {
                                     src={URL_IRYS_DEVNET + evento.uriImg}
                                     alt={`Imagen de ${evento.nombre}`}
                                     className="rounded-lg w-full max-w-xs h-40 object-cover border border-white/20"
+                                    style={{ width: '100%', maxWidth: '20rem', height: '10rem', objectFit: 'cover', borderRadius: '0.5rem', border: '1px solid rgba(255,255,255,0.2)' }}
                                 />
                             </div>
                             <h3 className="text-xl font-semibold text-white mb-2">{evento.nombre}</h3>

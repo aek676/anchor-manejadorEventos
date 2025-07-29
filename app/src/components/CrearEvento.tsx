@@ -59,7 +59,7 @@ export function CrearEvento() {
                 Number(formData.precioToken),   // Enviar como número decimal directo
                 tokenAceptado,
                 publicKey,
-                result ? result.uri : '' // Usar URI de la imagen si se subió
+                result ? result.uri : null // Usar URI de la imagen si se subió
             );
 
             console.log('Evento creado exitosamente:', eventoResult);
@@ -101,9 +101,10 @@ export function CrearEvento() {
             const uploadResult = await uploadImage(file);
             setResult(uploadResult);
             console.log("File uploaded successfully:", uploadResult);
-
         } catch (error) {
             console.error("Error uploading file:", error);
+        } finally {
+            setUploading(false);
         }
     };
 
@@ -190,15 +191,27 @@ export function CrearEvento() {
                         <label htmlFor="imagen" className="block text-sm font-medium text-blue-200 mb-2">
                             Imagen del Evento
                         </label>
-                        <div>
-                            <input type="file" onChange={handleFileUpload} disabled={uploading} />
-                            {uploading && <p>Uploading...</p>}
-                            {result && (
-                                <div>
-                                    <p>Upload successfully</p>
-                                    <p>Uri: {result.uri}</p>
-
-                                </div>
+                        <div className="flex items-center gap-3">
+                            <label
+                                htmlFor="imagen"
+                                className={`cursor-pointer bg-blue-700 hover:bg-blue-800 text-white px-4 py-2 rounded shadow transition-colors ${uploading || result ? 'opacity-60 cursor-not-allowed' : ''}`}
+                                style={{ display: 'inline-block' }}
+                            >
+                                {uploading
+                                    ? 'Subiendo...'
+                                    : result
+                                        ? 'Imagen subida'
+                                        : 'Subir Imagen'}
+                                <input
+                                    id="imagen"
+                                    type="file"
+                                    onChange={handleFileUpload}
+                                    disabled={uploading || !!result}
+                                    className="hidden"
+                                />
+                            </label>
+                            {uploading && (
+                                <span className="ml-2 text-blue-300 animate-pulse">Subiendo imagen...</span>
                             )}
                         </div>
                     </div>

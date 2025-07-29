@@ -4,10 +4,10 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
-    "build": "next build",
-    "start": "next start",
+    "build": "next build && node copy-assets.js",
+    "start": "node .next/standalone/server.js",
     "lint": "next lint",
-    "anchor:build": "anchor build && cp ../target/idl/manejador_eventos.json ./src/anchor/manejador_eventos.json && cp ../target/types/manejador_eventos.ts ./src/anchor/manejador_eventos.ts"
+    "anchor": "anchor build && anchor deploy && cp ../target/idl/manejador_eventos.json ./src/anchor/manejador_eventos.json && cp ../target/types/manejador_eventos.ts ./src/anchor/manejador_eventos.ts"
   },
   "dependencies": {
     "@coral-xyz/anchor": "^0.31.1",
@@ -32,6 +32,7 @@
   "devDependencies": {
     "@eslint/eslintrc": "^3",
     "@tailwindcss/postcss": "^4",
+    "@types/bn.js": "^5.2.0",
     "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",

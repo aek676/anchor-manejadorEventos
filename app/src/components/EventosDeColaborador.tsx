@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useWallet } from '@solana/wallet-adapter-react';
 import { useProgram } from '../hooks/useProgram';
 import { ManejadorEventosClient, EventoInfo } from '../utils/eventosClient';
+import { URL_IRYS_DEVNET } from '@/utils/uploadImage';
 import { CodigoError, getMensajeErrorAnchor } from '@/utils/AnchorError';
 import { SendTransactionError } from '@solana/web3.js';
 
@@ -85,6 +86,14 @@ export function EventosDeColaborador() {
             }
 
             console.log('Ganancias retiradas correctamente: ', signature);
+
+            // Actualizar el valor de ganancias disponibles tras retirar fondos
+            try {
+                const balance = await provider.connection.getTokenAccountBalance(pdas.bovedaGanancias);
+                setGanancias(prev => ({ ...prev, [evento.id]: balance.value.uiAmount ?? 0 }));
+            } catch {
+                setGanancias(prev => ({ ...prev, [evento.id]: 0 }));
+            }
         } catch (error: unknown) {
             console.error('Error al retirar fondos:', error);
             if (error instanceof SendTransactionError) {
@@ -104,6 +113,13 @@ export function EventosDeColaborador() {
             <ul className="space-y-4">
                 {eventos.map(evento => (
                     <li key={evento.id} className="bg-white/10 rounded-lg p-4 border border-white/20">
+                        <div className="mb-4 flex justify-center">
+                            <img
+                                src={URL_IRYS_DEVNET + evento.uriImg}
+                                alt={`Imagen de ${evento.nombre}`}
+                                className="rounded-lg w-full max-w-xs h-40 object-cover border border-white/20"
+                            />
+                        </div>
                         <h3 className="text-lg font-semibold text-white">{evento.nombre}</h3>
                         <p className="text-blue-200">{evento.descripcion}</p>
                         <div className="mt-2 text-sm text-blue-300">

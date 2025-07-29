@@ -73,6 +73,15 @@ export function ListaEventos() {
         }
     };
 
+    // Callback para actualizar eventos tras compra
+    const handleCompraRealizada = async () => {
+        if (vistaActual === 'todos') {
+            await cargarTodosLosEventos();
+        } else if (vistaActual === 'buscar') {
+            await buscarEvento();
+        }
+    };
+
     // Función para manejar el toggle de las pestañas por evento
     const handleTabToggle = (eventoId: string, tab: Tab) => {
         setActiveTabs(prev => ({
@@ -250,9 +259,16 @@ export function ListaEventos() {
                                                 <ComprarTokens
                                                     eventoId={evento.id}
                                                     autoridadEvento={evento.autoridad}
+                                                    onCompraRealizada={handleCompraRealizada}
                                                 />
                                             )}
-                                            {activeTabs[evento.id] === 'entradas' && <ComprarEntradas eventoId={evento.id} autoridadEvento={evento.autoridad} />}
+                                            {activeTabs[evento.id] === 'entradas' && (
+                                                <ComprarEntradas
+                                                    eventoId={evento.id}
+                                                    autoridadEvento={evento.autoridad}
+                                                    onCompraRealizada={handleCompraRealizada}
+                                                />
+                                            )}
                                         </div>
                                     )}
                                 </div>

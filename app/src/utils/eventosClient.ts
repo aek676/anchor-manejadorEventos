@@ -82,7 +82,7 @@ export class ManejadorEventosClient {
         precioToken: number,
         tokenAceptado: PublicKey,
         autoridad: PublicKey,
-        uri: string
+        uri: string | null
     ) {
         const pdas = this.findEventoPDAs(id, autoridad);
 

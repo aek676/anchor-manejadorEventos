@@ -76,9 +76,10 @@ pub struct ComprarTokenEvento<'info> {
 pub fn comprar_token_evento(ctx: Context<ComprarTokenEvento>, cantidad: u64) -> Result<()> {
     require!(cantidad > 0, CodigoError::CantidadInvalida);
 
-    // Verificar si es primera compra (colaborador recién creado)
-    let es_primera_compra = ctx.accounts.cuenta_comprador_token_evento.amount == 0;
-
+    // Verificar si es primera compra REAL (colaborador recién creado)
+    let es_primera_compra = ctx.accounts.colaborador.evento == Pubkey::default()
+        && ctx.accounts.colaborador.wallet == Pubkey::default();
+    
     // Verificar que no haya overflow al sumar los tokens vendidos
     ctx.accounts
         .evento
@@ -169,10 +170,8 @@ pub fn comprar_token_evento(ctx: Context<ComprarTokenEvento>, cantidad: u64) -> 
             .sponsors_actuales
             .checked_add(1)
             .ok_or(CodigoError::OverflowError)?;
-    }
 
-    // Crear el colaborador
-    if es_primera_compra {
+        // Inicializar colaborador solo si es realmente nuevo
         ctx.accounts.colaborador.evento = ctx.accounts.evento.key();
         ctx.accounts.colaborador.wallet = ctx.accounts.comprador.key();
         ctx.accounts.colaborador.bump = ctx.bumps.colaborador;
