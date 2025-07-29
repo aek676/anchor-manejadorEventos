@@ -28,20 +28,23 @@ Esto levantará los servicios necesarios para el desarrollo local.
 ## Configurar Phantom en Devnet
 
 1. Abre Phantom Wallet.
-2. Haz clic en el icono de configuración (⚙️).
-3. Busca la opción "Red" y selecciona **Devnet**.
+2. Haz clic en la imagen de la Cuenta y despues clic en el icono de configuración (⚙️).
+3. Ve a "Ajustes para desarroladores".
+4. Despues activa el "Modo Testnet".
+5. Y dentro de "Solana" estar en **Solana Devnet**.
+<img width="384" height="685" alt="image" src="https://github.com/user-attachments/assets/159a3843-b2e9-4fce-b067-35b6f76df7d9" />
 
 ## Conseguir SOL en Devnet
 
 1. Copia la dirección de tu wallet en Phantom.
-2. Ve a [https://faucet.solana.com/](https://faucet.solana.com/)
-3. Pega tu dirección y solicita SOL gratis para pruebas.
+![image](https://github.com/user-attachments/assets/baa7ffa4-5bdc-4a5a-8da8-829d964beebd)
+3. Ve a [https://faucet.solana.com/](https://faucet.solana.com/).
+4. Pega tu dirección y solicita SOL gratis para pruebas.
 
 ## Conseguir USDC en Devnet
 
-1. Copia la dirección de tu wallet en Phantom.
-2. Ve a [https://spl-token-faucet.com/?token-name=USDC-Dev](https://spl-token-faucet.com/?token-name=USDC-Dev)
-3. Conecta tu wallet y solicita USDC
+1. Ve a [https://spl-token-faucet.com/?token-name=USDC-Dev](https://spl-token-faucet.com/?token-name=USDC-Dev)
+2. Conecta tu wallet y solicita USDC
 
 ---
 
