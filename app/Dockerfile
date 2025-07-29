@@ -1,5 +1,5 @@
 # Dockerfile para aplicación Next.js con dependencias nativas
-FROM node:18-slim AS base
+FROM node:24-slim AS base
 
 # Instalar dependencias solo cuando sea necesario
 FROM base AS deps
