@@ -1,11 +1,12 @@
 services:
   nextjs:
+    container_name: nextjs-app
     build:
       context: ./app
       dockerfile: Dockerfile
     ports:
       - "3000:3000"
-    volumes:
-      - ./app:/app
     environment:
-      - NODE_ENV=production
+      - HOSTNAME=0.0.0.0   # ← sobrescribe el que pone Docker
+      - PORT=3000          # (opcional, ya es el valor por defecto)
+    restart: unless-stopped
