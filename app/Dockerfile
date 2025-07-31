@@ -12,7 +12,7 @@ RUN apt-get update \
 
 # Manifests para caché
 COPY package.json package-lock.json* ./
-RUN npm ci --omit=dev          # sólo dependencias prod (usb, react, etc.)
+RUN npm ci
 
 ############################
 #  Etapa 2 – Build         #
