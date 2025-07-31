@@ -227,7 +227,7 @@ export function ListaEventos() {
                                 <p><span className="font-medium">Token Aceptado:</span> {evento.tokenAceptado.toBase58()}</p>
                             </div>
 
-                            {publicKey && evento.autoridad.equals(publicKey) && (
+                            {publicKey && (
                                 <div className="mt-4 pt-4 border-t border-white/10">
                                     <div className='flex justify-between items-center'>
                                         <div className='flex space-x-2'>
